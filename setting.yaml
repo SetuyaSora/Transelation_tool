@@ -55,3 +55,6 @@ gemini_settings:
     翻訳結果: [翻訳]
     解説:
     - [元の英語]: [解説]
+
+behavior:
+  show_api_confirmation: true # APIの確認ダイアログを表示するかどうか
