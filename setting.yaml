@@ -50,8 +50,8 @@ result_window:
         color: '#C0C0C0'
         font_size: 12
         font_weight: normal
-    min_height: 100
-    min_width: 200
+    min_height: 400
+    min_width: 800
     opacity: 0.85
     translation_label:
         color: '#ADD8E6'
