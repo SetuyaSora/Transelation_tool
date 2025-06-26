@@ -1,14 +1,12 @@
-# author: Your Name
-# date: 2024-01-01
 import sys
 import mss
 import mss.tools
-import time
+import time # timeモジュールを追加
 import os
 import yaml
 import os.path
-from PyQt5.QtWidgets import QApplication, QWidget, QMessageBox, QLabel, QVBoxLayout, QHBoxLayout, QPushButton, QSizePolicy, QDesktopWidget
-from PyQt5.QtCore import Qt, QRect, QTimer, QBuffer, QIODevice, QPoint, QEvent, QThread, pyqtSignal # QThread, pyqtSignalを追加
+from PyQt5.QtWidgets import QApplication, QWidget, QMessageBox, QLabel, QVBoxLayout, QHBoxLayout, QPushButton, QSizePolicy
+from PyQt5.QtCore import Qt, QRect, QTimer, QBuffer, QIODevice, QPoint, QEvent
 from PyQt5.QtGui import QPainter, QColor, QPen, QPixmap, QCursor
 import win32api
 import win32con
@@ -19,9 +17,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # --- 設定ファイルパスと初期設定 ---
-# 現在実行中のスクリプトのディレクトリパスを取得
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-# 設定ファイルの絶対パスを生成
 SETTINGS_FILE = os.path.join(SCRIPT_DIR, "setting.yaml")
 
 # デフォルト設定 (ファイルが存在しない場合やエラーの場合に使う)
@@ -118,77 +114,61 @@ if not API_KEY:
 genai.configure(api_key=API_KEY)
 print("DEBUG: Gemini APIが設定されました。")
 
+# Gemini API呼び出し関数
+def process_screenshot_with_gemini(image_data):
+    print("DEBUG: Gemini API処理を開始します。")
+    try:
+        model_name = current_settings["gemini_settings"]["model_name"]
+        model = genai.GenerativeModel(model_name)
+        
+        image_part = {
+            'mime_type': 'image/png',
+            'data': image_data
+        }
 
-# API処理用ワーカー（スレッド）クラス
-class GeminiApiWorker(QThread):
-    # API処理結果をメインスレッドに送るためのシグナル
-    result_ready = pyqtSignal(str, str) # (翻訳結果, 解説) のタプルを送る
-    error_occurred = pyqtSignal(str)
+        translation_prompt = current_settings["gemini_settings"]["translation_prompt"]
+        prompt_parts = [
+            image_part,
+            translation_prompt,
+        ]
 
-    def __init__(self, image_data, settings, parent=None):
-        super().__init__(parent)
-        self.image_data = image_data
-        self.settings = settings
+        print("DEBUG: Gemini APIへリクエスト送信中...")
+        response = model.generate_content(prompt_parts)
+        print("DEBUG: Gemini APIからの応答を受信しました。")
+        
+        text_content = response.text
+        
+        translation = "翻訳結果が見つかりませんでした。"
+        explanation = "解説が見つかりませんでした。"
 
-    def run(self):
-        """
-        別スレッドでAPI処理を実行するメソッド
-        """
-        print("DEBUG: (Worker Thread) Gemini API処理を開始します。")
-        try:
-            model_name = self.settings["gemini_settings"]["model_name"]
-            model = genai.GenerativeModel(model_name)
-            print(f"DEBUG: (Worker Thread) モデル '{model_name}' をロードしました。")
-
-            image_part = {
-                'mime_type': 'image/png',
-                'data': self.image_data
-            }
-
-            translation_prompt = self.settings["gemini_settings"]["translation_prompt"]
-            prompt_parts = [
-                image_part,
-                translation_prompt,
-            ]
-
-            print("DEBUG: (Worker Thread) Gemini APIへリクエスト送信中...")
-            
-            # --- ここに timeout パラメータを追加 ---
-            # 例: 30秒でタイムアウト。必要に応じて調整してください
-            response = model.generate_content(prompt_parts) 
-            
-            print("DEBUG: (Worker Thread) Gemini APIからの応答を受信しました。")
-            
-            text_content = response.text
-            
-            translation = "翻訳結果が見つかりませんでした。"
-            explanation = "解説が見つかりませんでした。"
-
-            if "翻訳結果:" in text_content:
-                parts = text_content.split("翻訳結果:", 1)
-                translation_part = parts[1]
-                if "解説:" in translation_part:
-                    trans_exp_parts = translation_part.split("解説:", 1)
-                    translation = trans_exp_parts[0].strip()
-                    explanation = trans_exp_parts[1].strip()
-                else:
-                    translation = translation_part.strip()
-            elif "解説:" in text_content:
-                explanation = text_content.split("解説:", 1)[1].strip()
+        if "翻訳結果:" in text_content:
+            parts = text_content.split("翻訳結果:", 1)
+            translation_part = parts[1]
+            if "解説:" in translation_part:
+                trans_exp_parts = translation_part.split("解説:", 1)
+                translation = trans_exp_parts[0].strip()
+                explanation = trans_exp_parts[1].strip()
             else:
-                translation = text_content.strip()
+                translation = translation_part.strip()
+        elif "解説:" in text_content:
+             explanation = text_content.split("解説:", 1)[1].strip()
+        else:
+            translation = text_content.strip()
 
-            print(f"DEBUG: (Worker Thread) 翻訳結果: {translation[:50]}...")
-            print(f"DEBUG: (Worker Thread) 解説: {explanation[:50]}...")
+        print(f"DEBUG: 翻訳結果: {translation[:50]}...")
+        print(f"DEBUG: 解説: {explanation[:50]}...")
 
-            self.result_ready.emit(translation, explanation)
+        if result_window:
+            result_window.update_content(translation, explanation)
+            result_window.show()
+            result_window.raise_()
+            result_window.activateWindow()
+        else:
+            QMessageBox.information(None, "翻訳結果", f"翻訳結果:\n{translation}\n\n解説:\n{explanation}")
 
-        except Exception as e:
-            # エラー発生時に詳細なログを出力
-            import traceback
-            print(f"ERROR: (Worker Thread) Gemini API処理中に予期せぬエラーが発生しました: {e}")
-            traceback.print_exc() # 完全なスタックトレースを出力
-            self.error_occurred.emit(f"翻訳処理中にエラーが発生しました。\n詳細: {e}")
+    except Exception as e:
+        print(f"ERROR: Gemini API処理中にエラーが発生しました: {e}")
+        QMessageBox.critical(None, "エラー", f"翻訳処理中にエラーが発生しました。\n{e}")
 
 # 翻訳結果と解説を表示するウィンドウ
 class ResultWindow(QWidget):
@@ -206,13 +186,7 @@ class ResultWindow(QWidget):
             current_settings["result_window"]["min_width"],
             current_settings["result_window"]["min_height"]
         )
-        
-        # ウィンドウを画面中央に配置
-        qr = self.frameGeometry()
-        cp = QDesktopWidget().availableGeometry().center()
-        qr.moveCenter(cp)
-        self.move(qr.topLeft())
-        print(f"DEBUG: ResultWindow: ウィンドウを中央 ({self.x()}, {self.y()}) に配置しました。")
+        self.setGeometry(100, 100, self.minimumSize().width(), self.minimumSize().height())
 
         self.apply_settings(current_settings)
 
@@ -488,38 +462,16 @@ class SelectionWindow(QWidget):
 
                 if abs(x2 - x1) < 10 or abs(y2 - y1) < 10:
                     print("DEBUG: 選択範囲が小さすぎます。処理を中断します。")
-                    QMessageBox.warning(None, "エラー", "選択範囲が小さすぎます。")
+                    QMessageBox.warning(self, "エラー", "選択範囲が小さすぎます。")
                     return
 
                 # スクリーンショットを撮影し、ファイルに保存してからデータを取得
                 screenshot_data = self.take_selected_screenshot_in_memory(x1, y1, x2 - x1, y2 - y1)
                 
                 if screenshot_data:
-                    # --- 確認ダイアログを追加 ---
-                    msg_box = QMessageBox()
-                    msg_box.setWindowTitle('確認')
-                    msg_box.setText("スクリーンショットを保存しました。\nこの画像をGemini APIに送信して翻訳しますか？")
-                    msg_box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-                    msg_box.setDefaultButton(QMessageBox.Yes)
-                    msg_box.setIcon(QMessageBox.Question)
-                    
-                    if QApplication.instance():
-                        QApplication.instance().processEvents() # この行を追加
-
-                    reply = msg_box.exec_()
-                    
-                    if reply == QMessageBox.Yes:
-                        print("DEBUG: ユーザーがAPI送信を選択しました。")
-                        # API処理を別スレッドで開始
-                        self.worker_thread = GeminiApiWorker(screenshot_data, current_settings) # current_settingsを渡す
-                        self.worker_thread.result_ready.connect(main_app_instance.handle_api_result) # main_app_instanceに結果を送る
-                        self.worker_thread.error_occurred.connect(main_app_instance.handle_api_error) # エラーも送る
-                        self.worker_thread.start() # スレッドを開始
-                        print("DEBUG: Gemini API処理を別スレッドで開始しました。")
-                    else:
-                        print("DEBUG: ユーザーがAPI送信をキャンセルしました。")
+                    QTimer.singleShot(0, lambda: process_screenshot_with_gemini(screenshot_data))
                 else:
-                    QMessageBox.critical(None, "エラー", "スクリーンショットの取得に失敗しました。")
+                    QMessageBox.critical(self, "エラー", "スクリーンショットの取得に失敗しました。")
             
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape:
@@ -537,6 +489,7 @@ class SelectionWindow(QWidget):
     def take_selected_screenshot_in_memory(self, x, y, width, height):
         print(f"DEBUG: take_selected_screenshot: スクリーンショット範囲 ({x},{y},{width},{height})")
         
+        # スクリーンショット保存フォルダが存在しない場合は作成
         if not os.path.exists(OUTPUT_FOLDER):
             os.makedirs(OUTPUT_FOLDER)
             print(f"DEBUG: フォルダ '{OUTPUT_FOLDER}' を作成しました。")
@@ -548,17 +501,17 @@ class SelectionWindow(QWidget):
             from PIL import Image
             img_pil = Image.frombytes("RGB", sct_img.size, sct_img.rgb)
             
+            # ファイル名にタイムスタンプを使用
             timestamp = time.strftime("%Y%m%d-%H%M%S")
             filename = f"screenshot_{timestamp}.png"
-            filepath = os.path.join(OUTPUT_DIR, filename) # OUTPUT_DIR を使用 (修正)
+            filepath = os.path.join(OUTPUT_FOLDER, filename)
 
             try:
                 img_pil.save(filepath, "PNG")
-                print(f"DEBUG: スクリーンショットをファイルに保存しました: {filepath}")
+                print(f"DEBUG: スクリーンショットをファイルに保存しました: {filepath}") # ワンアクション
             except Exception as e:
                 print(f"ERROR: スクリーンショットのファイル保存中にエラーが発生しました: {e}")
-                print(f"ERROR: 保存パス: {filepath}") # パスを表示してデバッグしやすく
-                return None
+                return None # 保存失敗時はNoneを返す
 
             byte_array = QBuffer()
             byte_array.open(QIODevice.WriteOnly)
@@ -567,60 +520,21 @@ class SelectionWindow(QWidget):
             return byte_array.buffer().data()
 
 # --- メインアプリケーションのコード ---
-# MainWindow クラスを追加して、すべてのウィンドウとタイマーを管理
-class MainWindow(QWidget):
-    def __init__(self):
-        super().__init__()
-        self.setWindowTitle("翻訳ツール (バックグラウンド)")
-        self.setWindowFlags(Qt.SplashScreen | Qt.WindowStaysOnBottomHint) # タスクバーやAlt+Tabに表示しない
-        self.setGeometry(0, 0, 1, 1) # 非常に小さくして隠す
 
-        self.selection_window = SelectionWindow()
-        self.result_window = ResultWindow()
-        
-        self.hotkey_timer = QTimer()
-        self.hotkey_timer.timeout.connect(self.check_hotkey)
-        self.hotkey_timer.start(100)
+app = None
+selection_window = None
+result_window = None
+hotkey_timer = None
 
-        # ワーカーを管理するためのリスト (もし必要なら)
-        self.worker_threads = [] 
-
-    def check_hotkey(self):
-        if win32api.GetAsyncKeyState(HOTKEY_VK_CODE) & 0x8000:
-            if not self.selection_window.isVisible():
-                print("DEBUG: ホットキー検出！範囲選択を開始します。")
-                self.selection_window.showFullScreen()
-                self.selection_window.raise_()
-                self.selection_window.activateWindow()
-                if QApplication.instance():
-                    QApplication.instance().processEvents()
-    
-    # API結果を受け取るスロット
-    def handle_api_result(self, translation, explanation):
-        print("DEBUG: (Main Thread) API結果を受信しました。ウィンドウを更新します。")
-        self.result_window.update_content(translation, explanation)
-        self.result_window.show()
-        self.result_window.raise_()
-        self.result_window.activateWindow()
-        if QApplication.instance(): # UI表示後、イベントを強制処理
-            QApplication.instance().processEvents()
-        print("DEBUG: 翻訳結果ウィンドウを表示し、イベントを処理しました。")
-
-    # APIエラーを受け取るスロット
-    def handle_api_error(self, error_message):
-        print(f"DEBUG: (Main Thread) APIエラーを受信しました: {error_message}")
-        QMessageBox.critical(None, "エラー", error_message)
-
-    # アプリケーション終了時にスレッドをクリーンアップ (重要)
-    def closeEvent(self, event):
-        for worker in self.worker_threads:
-            if worker.isRunning():
-                worker.quit()
-                worker.wait()
-        super().closeEvent(event)
-
-
-main_app_instance = None # グローバルインスタンスの宣言
+def check_hotkey():
+    if win32api.GetAsyncKeyState(HOTKEY_VK_CODE) & 0x8000:
+        if not selection_window.isVisible():
+            print("DEBUG: ホットキー検出！範囲選択を開始します。")
+            selection_window.showFullScreen()
+            selection_window.raise_()
+            selection_window.activateWindow()
+            if QApplication.instance():
+                QApplication.instance().processEvents()
 
 if __name__ == "__main__":
     print("DEBUG: メインスクリプト開始。")
@@ -635,18 +549,19 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     print("DEBUG: QApplicationインスタンスを作成しました。")
     
-    # メインアプリケーションのインスタンスを作成
-    main_app_instance = MainWindow() # MainWindowのインスタンスを作成
-    # main_app_instance.hide() # バックグラウンドで動くので非表示に (SplashScreenフラグで自動で非表示)
+    selection_window = SelectionWindow()
+    selection_window.hide()
+    print("DEBUG: SelectionWindowインスタンスを作成し、非表示にしました。")
 
-    # グローバル変数として既存のインスタンスへの参照を渡す (一時的な解決策)
-    global selection_window, result_window
-    selection_window = main_app_instance.selection_window
-    result_window = main_app_instance.result_window
+    result_window = ResultWindow()
+    print("DEBUG: ResultWindowインスタンスを作成し、非表示にしました。")
 
-    # スクリーンショット保存フォルダの絶対パスを定義 (OUTPUT_FOLDERは単なるフォルダ名)
-    # 実行スクリプトと同じディレクトリをベースにする
-    OUTPUT_DIR = os.path.join(SCRIPT_DIR, OUTPUT_FOLDER) # これを追加
+    hotkey_timer = QTimer()
+    hotkey_timer.timeout.connect(check_hotkey)
+    hotkey_timer.start(100)
+
+    print("ショートカットキー（右Altキー）を監視中です... (ポーリング方式)")
+    print("Ctrl+Cでプログラムを終了できます。")
 
     sys.exit(app.exec_())
     print("DEBUG: QApplicationのイベントループが終了しました。")
