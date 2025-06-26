@@ -1,0 +1,57 @@
+QWidget {
+    background-color: rgba(40, 40, 40, 200);
+    border-radius: 15px;
+    border: 1px solid rgba(100, 100, 100, 150);
+    color: white;
+    font-family: Yu Gothic UI, Meiryo, sans-serif;
+}
+QLabel {
+    padding: 5px;
+}
+#translation_label {
+    font-size: 14pt;
+    font-weight: bold;
+    color: #ADD8E6;
+}
+#explanation_label {
+    font-size: 10pt;
+    font-weight: normal;
+    color: #C0C0C0;
+}
+#closeButton {
+    background-color: rgba(255, 0, 0, 180);
+    border-radius: 10px;
+    font-size: 12pt;
+    font-weight: bold;
+    color: white;
+    min-width: 20px;
+    min-height: 20px;
+    max-width: 20px;
+    max-height: 20px;
+    padding: 0px;
+}
+#closeButton:hover {
+    background-color: rgba(255, 50, 50, 220);
+}
+#historyButton {
+    background-color: #007bff; /* 青色のボタン */
+    color: white;
+    border-radius: 5px;
+    font-size: 9pt;
+    font-weight: bold;
+    padding: 0px;
+}
+#historyButton:hover {
+    background-color: #0056b3;
+}
+#settingsButton {
+    background-color: #6c757d; /* グレーのボタン */
+    color: white;
+    border-radius: 5px;
+    font-size: 9pt;
+    font-weight: bold;
+    padding: 0px;
+}
+#settingsButton:hover {
+    background-color: #5a6268;
+}

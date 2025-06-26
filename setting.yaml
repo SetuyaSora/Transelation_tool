@@ -1,60 +1,59 @@
-# 翻訳結果ウィンドウ (ResultWindow) の設定
-result_window:
-  opacity: 0.85                      # 透明度 (0.0 - 1.0)
-  background_color: "rgba(40, 40, 40, 200)" # 背景色 (RGBA形式)
-  border_radius: 15                  # 角丸の半径 (px)
-  border_color: "rgba(100, 100, 100, 150)" # 枠線の色 (RGBA形式)
-  border_width: 1                    # 枠線の幅 (px)
-  min_width: 200                     # 最小幅 (px)
-  min_height: 100                    # 最小高さ (px)
-
-  # 翻訳結果ラベル (translation_label) の設定
-  translation_label:
-    font_size: 14                    # フォントサイズ (pt)
-    font_weight: "bold"              # フォントの太さ ("normal", "bold", "bolder", "lighter"など)
-    color: "#ADD8E6"                 # 文字色 (HEXまたはCSSカラー名)
-
-  # 解説ラベル (explanation_label) の設定
-  explanation_label:
-    font_size: 12                    # フォントサイズ (pt)
-    font_weight: "normal"            # フォントの太さ
-    color: "#C0C0C0"                 # 文字色
-
-  # 閉じるボタン (closeButton) の設定
-  close_button:
-    background_color: "rgba(255, 0, 0, 180)" # 背景色
-    hover_color: "rgba(255, 50, 50, 220)"    # ホバー時の色
-    border_radius: 10                # 角丸の半径
-    font_size: 12                    # フォントサイズ
-    font_weight: "bold"              # フォントの太さ
-    color: "white"                   # 文字色
-    size: 20                         # ボタンの幅と高さ (px)
-
-# ホットキーの設定
-hotkey:
-  key_code: 0xA5                     # 右Altキーの仮想キーコード (VK_RMENU)
-
-# リアルタイム更新の設定
-realtime_update:
-  interval_ms: 1000                  # 設定ファイルをチェックする間隔 (ミリ秒)
-
-  # Gemini API の設定
-gemini_settings:
-  model_name: "gemini-1.5-flash-latest" # 使用するGeminiモデル名
-  translation_prompt: |
-    この画像は英語で表示されたゲーム画面です。含まれる全ての英語テキストを日本語に翻訳してください。ただし、ゲーム内の固有名詞（船、アイテム、勢力、地名、キャラクター名など）は翻訳せずに、元の英語をカタカナ表記にしてください。一般的な英単語でも、文脈からゲーム用語である可能性が高い場合は、無理に翻訳せずカタカナ表記にすることを優先してください。翻訳する際は、不自然な直訳にならないよう、文脈を考慮した自然な日本語への意訳を許可します。特に、ゲームのUIやメッセージとして表示されるテキストが、より自然で理解しやすい日本語になるように調整してください。
-
-    例：
-    - Original: Imperial Courier is best ship.
-    - Translation: インペリアルクーリエは最高の船だ。
-    - Original: THREAT LEVEL
-    - Translation: スレッドレベル
-
-    翻訳結果のみを最初に提供し、その後に元の英語テキストの単語や表現に関する簡単な解説を箇条書きで提供してください。
-    例：
-    翻訳結果: [翻訳]
-    解説:
-    - [元の英語]: [解説]
-
+OUTPUT_FOLDER: screenshots
 behavior:
-  show_api_confirmation: true # APIの確認ダイアログを表示するかどうか
+    show_api_confirmation: true
+gemini_settings:
+    model_name: gemini-1.5-flash-latest
+    translation_prompt: 'この画像は英語で表示されたゲーム画面です。含まれる全ての英語テキストを日本語に翻訳してください。ただし、ゲーム内の固有名詞（船、アイテム、勢力、地名、キャラクター名など）は翻訳せずに、元の英語をカタカナ表記にしてください。一般的な英単語でも、文脈からゲーム用語である可能性が高い場合は、無理に翻訳せずカタカナ表記にすることを優先してください。翻訳する際は、不自然な直訳にならないよう、文脈を考慮した自然な日本語への意訳を許可します。特に、ゲームのUIやメッセージとして表示されるテキストが、より自然で理解しやすい日本語になるように調整してください。
+
+
+        例：
+
+        - Original: Imperial Courier is best ship.
+
+        - Translation: インペリアルクーリエは最高の船だ。
+
+        - Original: THREAT LEVEL
+
+        - Translation: スレッドレベル
+
+
+        翻訳結果のみを最初に提供し、その後に元の英語テキストの単語や表現に関する簡単な解説を箇条書きで提供してください。
+
+        例：
+
+        翻訳結果: [翻訳]
+
+        解説:
+
+        - [元の英語]: [解説]
+
+        '
+hotkey:
+    key_code: 165
+realtime_update:
+    interval_ms: 1000
+result_window:
+    background_color: rgba(40, 40, 40, 200)
+    border_color: rgba(100, 100, 100, 150)
+    border_radius: 15
+    border_width: 1
+    close_button:
+        background-color: rgba(255, 0, 0, 180)
+        background_color: rgba(255, 0, 0, 180)
+        border_radius: 10
+        color: white
+        font_size: 12
+        font_weight: bold
+        hover_color: rgba(255, 50, 50, 220)
+        size: 20
+    explanation_label:
+        color: '#C0C0C0'
+        font_size: 12
+        font_weight: normal
+    min_height: 100
+    min_width: 200
+    opacity: 0.85
+    translation_label:
+        color: '#ADD8E6'
+        font_size: 14
+        font_weight: bold

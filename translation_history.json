@@ -1,0 +1,44 @@
+[
+    {
+        "timestamp": "2025-06-26 16:36:36",
+        "original_text": "画像から抽出されたテキスト (OCR未実装)",
+        "translation": "EDSM（イリート・デンジャラス・スターマップ）は当初、イリート：デンジャラス銀河周辺のシステム座標を保存・計算するためのコミュニティによる取り組みでした。現在では、システム、座標、情報（政府、忠誠心、勢力など）、そして天体（種類、素材など）を調べるために、多くのソフトウェアやウェブサイトで使用されている主要なAPIとなっています。",
+        "explanation": "- EDSM (Elite Dangerous Star Map):  イリート・デンジャラス・スターマップの略。ゲーム内用語であり、そのままカタカナ表記としました。\n- Elite: Dangerous:  ゲームのタイトル。そのままカタカナ表記としました。\n- API (Application Programming Interface): アプリケーションプログラミングインターフェース。IT用語で、そのままカタカナ表記としました。\n- government, allegiance, faction: それぞれ「政府」、「忠誠心」、「勢力」を意味する単語で、ゲーム内の要素を表しているため、カタカナ表記を避け、日本語訳を採用しました。\n- celestial bodies: 天体。ゲーム内用語としてそのままカタカナ表記にすることも考えられますが、文脈を考慮し、より自然な日本語訳を採用しました。\n- types, materials: 種類、素材。ゲーム内用語としてそのままカタカナ表記にすることも考えられますが、文脈を考慮し、より自然な日本語訳を採用しました。"
+    },
+    {
+        "timestamp": "2025-06-26 17:48:42",
+        "original_text": "画像から抽出されたテキスト (OCR未実装)",
+        "translation": "スイッチを入れると、トランジスタが順バイアスされ、LEDが点灯します。\nスイッチを入れると、トランジスタが順バイアスされ、LEDが点灯します。\nスイッチを入れると、トランジスタが順バイアスされ、それによってLEDが点灯します。\nスイッチを入れると、トランジスタが順バイアスされ、その結果LEDが点灯します。",
+        "explanation": "* **Closing the switch:** スイッチを入れる\n* **forward biases:** 順バイアスする (トランジスタの動作を説明する専門用語)\n* **the transistor:** トランジスタ (電子部品)\n* **energizes:** 点灯させる、通電する (文脈により適切な訳語を選択)\n* **the LED:** LED (発光ダイオード)\n* **This:** これ、このこと (文脈により適切な訳語を選択)\n* **and:**そして\n* **which:** そしてそれは〜、〜するところの (関係代名詞で、より自然な日本語にするために意訳)\n* **thus:** その結果、したがって\n\n\n4つの文は全て同じ意味ですが、接続詞や表現方法を変えることで、微妙にニュアンスが異なってきます。いずれも、回路の動作を簡潔に説明しています。"
+    },
+    {
+        "timestamp": "2025-06-26 17:49:13",
+        "original_text": "画像から抽出されたテキスト (OCR未実装)",
+        "translation": "スイッチを閉じるとトランジスタが順方向バイアスされます。これによりLEDが点灯します。",
+        "explanation": "- Closing the switch: スイッチを閉じる\n- forward biases: 順方向バイアスする（トランジスタのベースに電流を流し、導通状態にすること）\n- the transistor: トランジスタ\n- This energizes the LED: これによりLEDが点灯する（または、これによりLEDに電力が供給される）"
+    },
+    {
+        "timestamp": "2025-06-26 17:56:49",
+        "original_text": "画像から抽出されたテキスト (OCR未実装)",
+        "translation": "スイッチを閉じると、トランジスタが順方向バイアスされます。これにより、LEDが点灯します。",
+        "explanation": "- Closing the switch: スイッチを閉じる\n- forward biases: 順方向バイアス\n- the transistor: トランジスタ\n- This energizes: これは～に電力を供給する／これにより～が作動する\n- the LED: LED"
+    },
+    {
+        "timestamp": "2025-06-26 18:00:43",
+        "original_text": "画像から抽出されたテキスト (OCR未実装)",
+        "translation": "スイッチを閉じると、トランジスタが順方向バイアスされます。これにより、LEDが点灯します。",
+        "explanation": "- Closing the switch: スイッチを閉じる\n- forward biases the transistor: トランジスタを順方向バイアスする\n- This energizes the LED: これによりLEDが点灯する ( energizes は「活性化する」という意味だが、この文脈では「点灯する」と訳す方が自然)"
+    },
+    {
+        "timestamp": "2025-06-26 18:01:18",
+        "original_text": "画像から抽出されたテキスト (OCR未実装)",
+        "translation": "スイッチを閉じると、トランジスタが順方向バイアスされます。これにより、LEDが点灯します。",
+        "explanation": "- Closing the switch: スイッチを閉じる\n- forward biases the transistor: トランジスタを順方向バイアスする（トランジスタに電流を流すための適切な電圧を印加する）\n- This energizes the LED: これによりLEDが点灯する（LEDに電流が流れ、発光する）"
+    },
+    {
+        "timestamp": "2025-06-26 18:07:54",
+        "original_text": "画像から抽出されたテキスト (OCR未実装)",
+        "translation": "スイッチを入れるとトランジスタが順方向バイアスされ、LEDが点灯します。",
+        "explanation": "- Closing the switch: スイッチを入れる\n- forward biases the transistor: トランジスタを順方向バイアスする（トランジスタの動作を制御するための電圧を印加する）\n- This energizes the LED: これがLEDを点灯させる"
+    }
+]

@@ -1,0 +1,39 @@
+HistoryWindow {
+    background-color: #2c3e50; /* Dark blue-gray background */
+    border: 1px solid #555555;
+    border-radius: 8px;
+}
+QLabel {
+    color: white;
+    font-family: Yu Gothic UI, Meiryo, sans-serif;
+}
+QListWidget {
+    background-color: #34495e; /* Slightly lighter background for list */
+    border: 1px solid #555555;
+    border-radius: 5px;
+    color: #ecf0f1; /* Light gray text */
+    font-size: 9pt;
+}
+QListWidget::item {
+    padding: 5px;
+}
+QListWidget::item:selected {
+    background-color: #3498db; /* Blue selection */
+    color: white;
+}
+QPushButton {
+    background-color: #5cb85c;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    min-width: 70px;
+    min-height: 25px;
+    font-size: 10pt;
+}
+QPushButton:hover {
+    background-color: #4cae4c;
+}
+QPushButton:pressed {
+    background-color: #449d44;
+}

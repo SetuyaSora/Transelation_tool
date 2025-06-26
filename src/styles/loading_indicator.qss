@@ -1,0 +1,10 @@
+QWidget {
+    background-color: rgba(40, 40, 40, 200); /* Semi-transparent dark background */
+    border-radius: 15px; /* Rounded corners */
+}
+QLabel {
+    color: white;
+    font-size: 14pt;
+    font-weight: bold;
+    font-family: Yu Gothic UI, Meiryo, sans-serif;
+}
