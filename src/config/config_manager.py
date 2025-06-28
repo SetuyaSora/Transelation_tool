@@ -59,6 +59,11 @@ class ConfigManager:
         },
         "behavior": {
             "show_api_confirmation": True
+        },
+        "ocr_settings": { # OCR設定を追加
+            "tesseract_path": None, # Tesseract.exe のフルパス (例: "C:\\Program Files\\Tesseract-OCR\\tesseract.exe")
+            "lang": "eng+jpn", # OCRに使用する言語 (英語と日本語)
+            "config": "--psm 3" # Tesseractの追加設定 (ページセグメンテーションモード)
         }
     }
 
@@ -121,6 +126,11 @@ class ConfigManager:
                 current_dict = current_dict[key]
         print(f"DEBUG: ConfigManager: 設定 '{key_path}' を '{value}' に更新しました。")
 
+    def reload(self):
+        """設定をファイルから再ロードする。"""
+        self._settings_data = self._load_settings()
+        print("DEBUG: ConfigManager: 設定を再ロードしました。")
+
     def _deep_merge_dicts(self, default_dict, override_dict):
         """辞書を再帰的にマージするヘルパー関数。"""
         for key, value in override_dict.items():
@@ -129,9 +139,4 @@ class ConfigManager:
             else:
                 default_dict[key] = value
         return default_dict
-
-    def reload(self):
-        """設定をファイルから再ロードする。"""
-        self._settings_data = self._load_settings()
-        print("DEBUG: ConfigManager: 設定を再ロードしました。")
 

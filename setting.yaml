@@ -1,59 +1,49 @@
-OUTPUT_FOLDER: screenshots
-behavior:
-    show_api_confirmation: true
-gemini_settings:
-    model_name: gemini-1.5-flash-latest
-    translation_prompt: 'この画像は英語で表示されたゲーム画面です。含まれる全ての英語テキストを日本語に翻訳してください。ただし、ゲーム内の固有名詞（船、アイテム、勢力、地名、キャラクター名など）は翻訳せずに、元の英語をカタカナ表記にしてください。一般的な英単語でも、文脈からゲーム用語である可能性が高い場合は、無理に翻訳せずカタカナ表記にすることを優先してください。翻訳する際は、不自然な直訳にならないよう、文脈を考慮した自然な日本語への意訳を許可します。特に、ゲームのUIやメッセージとして表示されるテキストが、より自然で理解しやすい日本語になるように調整してください。
-
-
-        例：
-
-        - Original: Imperial Courier is best ship.
-
-        - Translation: インペリアルクーリエは最高の船だ。
-
-        - Original: THREAT LEVEL
-
-        - Translation: スレッドレベル
-
-
-        翻訳結果のみを最初に提供し、その後に元の英語テキストの単語や表現に関する簡単な解説を箇条書きで提供してください。
-
-        例：
-
-        翻訳結果: [翻訳]
-
-        解説:
-
-        - [元の英語]: [解説]
-
-        '
-hotkey:
-    key_code: 165
-realtime_update:
-    interval_ms: 1000
 result_window:
-    background_color: rgba(40, 40, 40, 200)
-    border_color: rgba(100, 100, 100, 150)
-    border_radius: 15
-    border_width: 1
-    close_button:
-        background-color: rgba(255, 0, 0, 180)
-        background_color: rgba(255, 0, 0, 180)
-        border_radius: 10
-        color: white
-        font_size: 12
-        font_weight: bold
-        hover_color: rgba(255, 50, 50, 220)
-        size: 20
-    explanation_label:
-        color: '#C0C0C0'
-        font_size: 12
-        font_weight: normal
-    min_height: 400
-    min_width: 800
-    opacity: 0.85
-    translation_label:
-        color: '#ADD8E6'
-        font_size: 14
-        font_weight: bold
+  opacity: 0.85
+  background_color: "rgba(40, 40, 40, 200)"
+  border_radius: 15
+  border_color: "rgba(100, 100, 100, 150)"
+  border_width: 1
+  min_width: 800
+  min_height: 400
+  translation_label:
+    font_size: 14
+    font_weight: "bold"
+    color: "#ADD8E6"
+  explanation_label:
+    font_size: 12
+    font_weight: "normal"
+    color: "#C0C0C0"
+  close_button:
+    background-color: "rgba(255, 0, 0, 180)"
+    hover_color: "rgba(255, 50, 50, 220)"
+    border_radius: 10
+    font_size: 12
+    font_weight: "bold"
+    color: "white"
+    size: 20
+hotkey:
+  key_code: 165 # 右Altキーの仮想キーコード (0xA5)
+gemini_settings:
+  model_name: "gemini-1.5-flash-latest"
+  translation_prompt: |
+    この画像は英語で表示されたゲーム画面です。含まれる全ての英語テキストを日本語に翻訳してください。ただし、ゲーム内の固有名詞（船、アイテム、勢力、地名、キャラクター名など）は翻訳せずに、元の英語をカタカナ表記にしてください。一般的な英単語でも、文脈からゲーム用語である可能性が高い場合は、無理に翻訳せずカタカナ表記にすることを優先してください。翻訳する際は、不自然な直訳にならないよう、文脈を考慮した自然な日本語への意訳を許可します。特に、ゲームのUIやメッセージとして表示されるテキストが、より自然で理解しやすい日本語になるように調整してください。
+
+    例：
+    - Original: Imperial Courier is best ship.
+    - Translation: インペリアルクーリエは最高の船だ。
+    - Original: THREAT LEVEL
+    - Translation: スレッドレベル
+
+    翻訳結果のみを最初に提供し、その後に元の英語テキストの単語や表現に関する簡単な解説を箇条書きで提供してください。
+    例：
+    翻訳結果: [翻訳]
+    解説:
+    - [元の英語]: [解説]
+behavior:
+  show_api_confirmation: true # API送信確認ダイアログの表示/非表示 (true/false)
+ocr_settings: # OCR設定
+  tesseract_path: null # Tesseract.exe のフルパス (例: "C:\\Program Files\\Tesseract-OCR\\tesseract.exe")
+  lang: "eng+jpn" # OCRに使用する言語 (例: "eng", "jpn", "eng+jpn")
+  config: "--psm 3" # Tesseractの追加設定 (ページセグメンテーションモードなど)
+OUTPUT_FOLDER: "screenshots" # スクリーンショットの保存先フォルダ

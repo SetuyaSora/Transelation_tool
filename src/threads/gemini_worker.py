@@ -2,10 +2,9 @@ from PyQt5.QtCore import QThread, pyqtSignal
 import google.generativeai as genai
 
 # src/config/config_managerから設定マネージャーをインポート
-# main_app.pyでConfigManagerのインスタンスが作成され、それが渡されることを想定
-# ここではimport文のみ記述し、ConfigManagerのインスタンスは外部から注入される
-from src.config.config_manager import ConfigManager # インポートを追加
-from src.utils.helper_functions import add_translation_entry, save_translation_history # 履歴関連関数をインポート
+from src.config.config_manager import ConfigManager
+# 履歴関連関数はGeminiWorkerからは直接操作しない (SelectionWindowで操作する)
+# from src.utils.helper_functions import add_translation_entry, save_translation_history # ここでは不要
 
 class GeminiWorker(QThread):
     """
@@ -18,24 +17,18 @@ class GeminiWorker(QThread):
     # Arguments: error_message (str)
     error = pyqtSignal(str)
 
-    def __init__(self, image_data, config_manager: ConfigManager, history_file_path: str): # config_managerとhistory_file_pathを引数に追加
+    def __init__(self, image_data, original_text, config_manager: ConfigManager, history_file_path: str):
         super().__init__()
         self.image_data = image_data
-        self.config_manager = config_manager # ConfigManagerのインスタンスを保持
-        self.history_file_path = history_file_path
-        self._current_translation_history = [] # 履歴を保持する内部リスト。後でload_translation_historyで初期化
+        self.original_text = original_text # OCRで抽出された原文テキスト (または空文字列)
+        self.config_manager = config_manager
+        self.history_file_path = history_file_path # 履歴ファイルパスは履歴保存用として保持
 
     def run(self):
         print("DEBUG: GeminiWorker: API処理を開始します。")
-        original_text = "N/A" # デフォルト値
-
-        # 履歴をロード（スレッド内で直接ロードしない）
-        # self._current_translation_history = load_translation_history(self.history_file_path)
-
+        
         try:
-            model_name = self.config_manager.get("gemini_settings.model_name") # ConfigManagerから設定を取得
-            # APIキーはmain_app.pyでgenai.configureされているため、ここでは不要
-
+            model_name = self.config_manager.get("gemini_settings.model_name")
             model = genai.GenerativeModel(model_name)
             
             image_part = {
@@ -43,7 +36,17 @@ class GeminiWorker(QThread):
                 'data': self.image_data
             }
 
-            translation_prompt = self.config_manager.get("gemini_settings.translation_prompt") # ConfigManagerから設定を取得
+            # 設定からプロンプトを取得
+            translation_prompt = self.config_manager.get("gemini_settings.translation_prompt")
+            
+            # OCRでテキストが抽出された場合のみ、プロンプトに原文を含める
+            if self.original_text and self.original_text.strip() != "" and \
+                not self.original_text.startswith("OCRエラー:"): # エラーメッセージはプロンプトに含めない
+                translation_prompt += f"\n\n--- 画像からOCRで抽出されたテキスト ---\n{self.original_text.strip()}\n\n"
+                translation_prompt += "上記OCRテキストを考慮し、もし画像テキストが読み取れない場合はOCRテキストを優先して翻訳・解説してください。"
+            else:
+                print("DEBUG: GeminiWorker: OCRテキストが空か、エラーメッセージのため、プロンプトには含めません。")
+            
             prompt_parts = [
                 image_part,
                 translation_prompt,
@@ -60,8 +63,6 @@ class GeminiWorker(QThread):
 
             if "翻訳結果:" in text_content:
                 parts = text_content.split("翻訳結果:", 1)
-                original_text = "画像から抽出されたテキスト (OCR未実装)" # 暫定的な値
-
                 translation_part = parts[1]
                 if "解説:" in translation_part:
                     trans_exp_parts = translation_part.split("解説:", 1)
@@ -71,19 +72,16 @@ class GeminiWorker(QThread):
                     translation = translation_part.strip()
             elif "解説:" in text_content:
                 explanation = text_content.split("解説:", 1)[1].strip()
-                original_text = "画像から抽出されたテキスト (OCR未実装)" # 暫定的な値
             else:
                 translation = text_content.strip()
-                original_text = "画像から抽出されたテキスト (OCR未実装)" # 暫定的な値
 
             print(f"DEBUG: GeminiWorker: 翻訳結果: {translation[:50]}...")
             print(f"DEBUG: GeminiWorker: 解説: {explanation[:50]}...")
             
-            # 処理結果をシグナルで送信
-            self.finished.emit(original_text, translation, explanation)
+            self.finished.emit(self.original_text, translation, explanation)
 
         except Exception as e:
             print(f"ERROR: GeminiWorker: Gemini API処理中にエラーが発生しました: {e}")
-            # エラーメッセージをシグナルで送信
+            # エラー発生時はoriginal_textをそのまま渡す (エラーメッセージならそのまま、OCR結果ならそのまま)
             self.error.emit(f"翻訳処理中にエラーが発生しました。\n{e}")
 
