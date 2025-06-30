@@ -7,6 +7,7 @@ QLabel {
     color: white; /* テキストを白に */
     font-family: Yu Gothic UI, Meiryo, sans-serif;
     font-size: 10pt; /* メッセージのフォントサイズ */
+    background-color: transparent; /* ここを追加！QLabelの背景を透明に */
 }
 QPushButton {
     background-color: #5cb85c; /* 緑色のボタン */
@@ -23,4 +24,28 @@ QPushButton:hover {
 }
 QPushButton:pressed {
     background-color: #449d44; /* クリック時の色 */
+}
+
+/* ラジオボタンのテキスト部分のスタイル */
+QRadioButton {
+    color: white; /* ラジオボタンのテキストを白に */
+    background-color: transparent; /* ここを追加！ラジオボタンの背景を透明に */
+}
+
+/* ラジオボタンのインジケーター（丸い部分）のスタイル */
+QRadioButton::indicator {
+    width: 13px;
+    height: 13px;
+    border-radius: 7px; /* 丸くする */
+    background-color: #555555; /* デフォルトの背景色 */
+    border: 1px solid #888888; /* 枠線 */
+}
+
+QRadioButton::indicator:hover {
+    border: 1px solid #ADD8E6; /* ホバー時の枠線色 */
+}
+
+QRadioButton::indicator:checked {
+    background-color: #3498db; /* チェック時の背景色（青） */
+    border: 1px solid #ADD8E6; /* チェック時の枠線色 */
 }

@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QMessageBox, QStyle, QApplication, QRadioButton, QButtonGroup
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QPoint, QRect, QEvent # QPoint, QRect, QEvent を追加
 
 class CustomMessageBox(QDialog):
     """
@@ -113,6 +113,17 @@ class CustomMessageBox(QDialog):
         self.resize(350, 200) # モード選択分、高さを少し調整
         self.center_on_screen()
 
+        # ドラッグ・リサイズ関連のフラグと位置情報
+        self._resizing = False
+        self._dragging = False
+        self._resize_start_pos = None
+        self._resize_start_geometry = None
+        self._resize_edge = []
+        self._drag_start_pos = None
+
+        self.setMouseTracking(True) # マウス移動イベントを常に受け取る
+
+
     def _on_mode_selected(self, button):
         """ラジオボタンがクリックされたときに呼び出される。"""
         if button == self.translation_radio:
@@ -135,3 +146,129 @@ class CustomMessageBox(QDialog):
         else:
             super().keyPressEvent(event)
 
+    _border_width = 8 # クラス変数として定義 (リサイズ境界線の幅)
+
+    def _is_at_border(self, pos):
+        """マウスカーソルがウィンドウの境界線付近にあるか判定する。"""
+        x, y = pos.x(), pos.y()
+        w, h = self.width(), self.height()
+        border = self._border_width
+        
+        at_left = x < border
+        at_right = x > w - border
+        at_top = y < border
+        at_bottom = y > h - border
+        
+        return at_left or at_right or at_top or at_bottom
+
+    def _get_cursor_shape(self, pos):
+        """マウスカーソルの位置に応じてカーソル形状を決定する。"""
+        x, y = pos.x(), pos.y()
+        w, h = self.width(), self.height()
+        border = self._border_width
+
+        at_left = x < border
+        at_right = x > w - border
+        at_top = y < border
+        at_bottom = y > h - border
+
+        if at_top and at_left: return Qt.SizeFDiagCursor
+        if at_top and at_right: return Qt.SizeBDiagCursor
+        if at_bottom and at_left: return Qt.SizeBDiagCursor
+        if at_bottom and at_right: return Qt.SizeFDiagCursor
+        if at_left or at_right: return Qt.SizeHorCursor
+        if at_top or at_bottom: return Qt.SizeVerCursor
+        
+        return Qt.ArrowCursor
+
+    def _get_resize_edge(self, pos):
+        """リサイズする境界線の方向をリストで返す。"""
+        x, y = pos.x(), pos.y()
+        w, h = self.width(), self.height()
+        border = self._border_width
+
+        edge = []
+        if x < border: edge.append("left")
+        if x > w - border: edge.append("right")
+        if y < border: edge.append("top")
+        if y > h - border: edge.append("bottom")
+        return edge
+
+    def _handle_resize(self, global_pos):
+        """ウィンドウのリサイズ処理を行う。"""
+        dx = global_pos.x() - self._resize_start_pos.x()
+        dy = global_pos.y() - self._resize_start_pos.y()
+
+        new_x, new_y, new_width, new_height = self._resize_start_geometry.x(), \
+                                             self._resize_start_geometry.y(), \
+                                             self._resize_start_geometry.width(), \
+                                             self._resize_start_geometry.height()
+
+        for edge in self._resize_edge:
+            if edge == "left":
+                new_x += dx
+                new_width -= dx
+            elif edge == "right":
+                new_width += dx
+            elif edge == "top":
+                new_y += dy
+                new_height -= dy
+            elif edge == "bottom":
+                new_height += dy
+
+        # CustomMessageBoxの最小サイズは固定値で指定 (例: 350x200)
+        min_width = 350 # CustomMessageBoxの最小幅
+        min_height = 200 # CustomMessageBoxの最小高さ
+        
+        if new_width < min_width:
+            if "left" in self._resize_edge:
+                new_x = self._resize_start_geometry.x() + self._resize_start_geometry.width() - min_width
+            new_width = min_width
+        
+        if new_height < min_height:
+            if "top" in self._resize_edge:
+                new_y = self._resize_start_geometry.y() + self._resize_start_geometry.height() - min_height
+            new_height = min_height
+
+        self.setGeometry(new_x, new_y, new_width, new_height)
+
+    def mousePressEvent(self, event):
+        """マウスが押された時のイベントハンドラ。ドラッグまたはリサイズを開始する。"""
+        if event.button() == Qt.LeftButton:
+            local_pos = self.mapFromGlobal(event.globalPos())
+            if self._is_at_border(local_pos):
+                self._resizing = True
+                self._resize_start_pos = event.globalPos()
+                self._resize_start_geometry = self.geometry()
+                self._resize_edge = self._get_resize_edge(local_pos)
+                self.setCursor(self._get_cursor_shape(local_pos))
+                self._dragging = False # リサイズ中なのでドラッグではない
+            else:
+                self._dragging = True
+                # ウィンドウの左上隅とマウスのグローバル位置のオフセットを記録
+                self._drag_start_pos = event.globalPos() - self.pos() 
+                self._resizing = False # ドラッグ中なのでリサイズではない
+        super().mousePressEvent(event) # 基底クラスのイベントハンドラも呼び出す
+
+    def mouseMoveEvent(self, event):
+        """マウスが移動した時のイベントハンドラ。ドラッグまたはリサイズを実行する。"""
+        if event.buttons() == Qt.LeftButton: # 左クリックが押されている場合
+            if self._resizing:
+                self._handle_resize(event.globalPos())
+            elif self._dragging:
+                # ウィンドウの新しい位置を計算
+                self.move(event.globalPos() - self._drag_start_pos)
+        else: # ボタンが押されていない場合 (マウスオーバー)
+            local_pos = self.mapFromGlobal(event.globalPos())
+            # ドラッグもリサイズもしていない場合のみカーソル形状を更新
+            if not self._dragging and not self._resizing:
+                current_cursor = self._get_cursor_shape(local_pos)
+                self.setCursor(current_cursor)
+        super().mouseMoveEvent(event) # 基底クラスのイベントハンドラも呼び出す
+
+    def mouseReleaseEvent(self, event):
+        """マウスボタンが離された時のイベントハンドラ。ドラッグまたはリサイズを終了する。"""
+        self._dragging = False
+        self._resizing = False
+        self.setCursor(Qt.ArrowCursor) # カーソルをデフォルトに戻す
+        super().mouseReleaseEvent(event) # 基底クラスのイベントハンドラも呼び出す
