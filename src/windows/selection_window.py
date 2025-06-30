@@ -3,8 +3,7 @@ import mss.tools
 import time
 import os
 from PIL import Image
-import pytesseract # pytesseract をインポート
-from io import BytesIO # BytesIO をインポート
+from io import BytesIO
 
 from PyQt5.QtWidgets import QApplication, QWidget, QMessageBox
 from PyQt5.QtCore import Qt, QRect, QBuffer, QIODevice, QTimer
@@ -41,8 +40,6 @@ class SelectionWindow(QWidget):
         self.setGeometry(screen_geometry)
         print(f"DEBUG: SelectionWindow: 画面サイズを {screen_geometry.width()}x{screen_geometry.height()} に設定しました。")
 
-        # Tesseractのパス設定は_perform_ocr内で動的に行う
-        
         self.start_point = None
         self.end_point = None
         self.selecting = False
@@ -82,16 +79,21 @@ class SelectionWindow(QWidget):
 
                 screenshot_data = self.take_selected_screenshot_in_memory(x1, y1, x2 - x1, y2 - y1)
                 
-                original_text_from_ocr = self._perform_ocr(screenshot_data) # ここでOCRを実行
+                original_text_from_ocr = self._perform_ocr(screenshot_data)
 
                 if screenshot_data:
+                    # デフォルトモードを取得
+                    current_gemini_mode = self.config_manager.get("gemini_settings.mode", "translation")
+                    
+                    # API送信確認ダイアログの表示
                     if self.config_manager.get("behavior.show_api_confirmation"):
                         dialog = CustomMessageBox(
                             self,
                             "API送信確認",
                             "スクリーンショットをGemini APIに送信して翻訳しますか？",
                             QMessageBox.Question,
-                            QMessageBox.Yes | QMessageBox.No
+                            QMessageBox.Yes | QMessageBox.No,
+                            current_mode=current_gemini_mode # 現在の設定モードを渡す
                         )
                         script_dir = os.path.dirname(__file__)
                         qss_file_path = os.path.join(script_dir, '..', 'styles', 'custom_message_box.qss')
@@ -104,12 +106,19 @@ class SelectionWindow(QWidget):
                             print(f"ERROR: スタイルシートの読み込み中にエラーが発生しました: {e}")
 
                         reply = dialog.exec_()
+                        selected_mode = dialog.selected_mode # ダイアログから選択されたモードを取得
                     else:
                         reply = QMessageBox.Yes
+                        selected_mode = current_gemini_mode # 確認ダイアログをスキップする場合、設定モードを使用
 
                     if reply == QMessageBox.Yes:
-                        print("DEBUG: API送信が承認されました。")
+                        print(f"DEBUG: API送信が承認されました。選択されたモード: {selected_mode}")
                         self.loading_indicator.show()
+                        
+                        # 選択されたモードをConfigManagerに一時的に設定
+                        # GeminiWorkerはこのConfigManagerのインスタンスを参照するため、新しいモードで動作する
+                        self.config_manager.set("gemini_settings.mode", selected_mode)
+
                         self.worker_thread = GeminiWorker(screenshot_data, original_text_from_ocr, self.config_manager, self.history_file_path)
                         self.worker_thread.finished.connect(self.on_gemini_finished)
                         self.worker_thread.error.connect(self.on_gemini_error)
@@ -173,12 +182,19 @@ class SelectionWindow(QWidget):
         lang = self.config_manager.get("ocr_settings.lang", "eng+jpn")
         ocr_config_str = self.config_manager.get("ocr_settings.config", "--psm 3")
 
-        # Tesseractのパスが指定されていない場合、OCRをスキップ
         if not tesseract_path:
             print("DEBUG: OCRスキップ: setting.yamlでtesseract_pathが指定されていません。")
             return ""
         
-        # pytesseract.pytesseract.tesseract_cmd を設定 (OCR実行時のみ)
+        try:
+            import pytesseract
+        except ImportError:
+            error_msg = "OCR機能は有効ですが、pytesseractライブラリが見つかりません。\n" \
+                        "'pip install pytesseract' を実行してください。"
+            print(f"ERROR: OCR処理中にエラーが発生しました: {error_msg}")
+            self.show_custom_messagebox("OCRエラー", error_msg, QMessageBox.Critical)
+            return ""
+
         pytesseract.pytesseract.tesseract_cmd = tesseract_path
 
         try:
@@ -191,14 +207,12 @@ class SelectionWindow(QWidget):
                         "Tesseractがインストールされ、PATHに設定されているか、\n" \
                         "またはsetting.yamlのocr_settings.tesseract_pathに正しいパスが指定されているか確認してください。"
             print(f"ERROR: OCR処理中にエラーが発生しました: {error_msg}")
-            # ユーザーにはエラーを通知するが、Gemini APIには空の文字列を渡す
             self.show_custom_messagebox("OCRエラー", error_msg, QMessageBox.Critical)
             return ""
         except Exception as e:
             error_msg = f"OCR処理中に予期せぬエラーが発生しました: {e}"
             print(f"ERROR: OCR処理中にエラーが発生しました: {error_msg}")
             self.show_custom_messagebox("OCRエラー", error_msg, QMessageBox.Critical)
-            # ユーザーにはエラーを通知するが、Gemini APIには空の文字列を渡す
             return ""
 
 
@@ -229,6 +243,8 @@ class SelectionWindow(QWidget):
         Function to display a custom message box.
         Uses the CustomMessageBox class.
         """
+        # ここでは常にデフォルトモードを渡すが、API送信確認ダイアログの呼び出し元で
+        # current_mode を渡すようにしているため、ここは変更不要。
         dialog = CustomMessageBox(self, title, message, icon_type, buttons)
         script_dir = os.path.dirname(__file__)
         qss_file_path = os.path.join(script_dir, '..', 'styles', 'custom_message_box.qss')

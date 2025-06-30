@@ -1,19 +1,21 @@
-from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QMessageBox, QStyle, QApplication # QApplication を追加
+from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QMessageBox, QStyle, QApplication, QRadioButton, QButtonGroup
 from PyQt5.QtCore import Qt
 
 class CustomMessageBox(QDialog):
     """
     カスタムデザインのメッセージボックスを提供するクラス。
     標準のQMessageBoxの代わりに利用される。
+    モード選択機能も追加。
     """
-    def __init__(self, parent=None, title="メッセージ", message="メッセージ", icon_type=QMessageBox.Information, buttons=QMessageBox.Ok):
+    def __init__(self, parent=None, title="メッセージ", message="メッセージ", icon_type=QMessageBox.Information, buttons=QMessageBox.Ok, current_mode="translation"): # current_modeを引数に追加
         super().__init__(parent)
         print("DEBUG: CustomMessageBox: __init__ が呼び出されました。")
         self.setWindowTitle(title)
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.Dialog | Qt.WindowStaysOnTopHint)
         self.setModal(True) # モーダルダイアログにする
 
-        self.result = QMessageBox.NoButton # デフォルトの結果
+        self.result = QMessageBox.NoButton # デフォルトの結果 (Yes/No/Cancelなど)
+        self.selected_mode = current_mode # 選択されたモードを初期化
 
         # レイアウト
         main_layout = QVBoxLayout(self)
@@ -53,7 +55,38 @@ class CustomMessageBox(QDialog):
         content_layout.addWidget(message_label)
         main_layout.addLayout(content_layout)
 
-        # Buttons
+        # --- モード選択ラジオボタンの追加 ---
+        mode_selection_layout = QHBoxLayout()
+        mode_selection_label = QLabel("モード選択:", self)
+        mode_selection_label.setStyleSheet("color: white; font-weight: bold;")
+        mode_selection_layout.addWidget(mode_selection_label)
+
+        self.translation_radio = QRadioButton("翻訳モード", self)
+        self.translation_radio.setStyleSheet("color: white;")
+        self.explanation_radio = QRadioButton("解説モード", self)
+        self.explanation_radio.setStyleSheet("color: white;")
+
+        self.mode_button_group = QButtonGroup(self)
+        self.mode_button_group.addButton(self.translation_radio, 0) # 0 for translation
+        self.mode_button_group.addButton(self.explanation_radio, 1) # 1 for explanation
+
+        # 初期モードを設定
+        if current_mode == "explanation":
+            self.explanation_radio.setChecked(True)
+        else:
+            self.translation_radio.setChecked(True) # デフォルトは翻訳モード
+
+        self.mode_button_group.buttonClicked.connect(self._on_mode_selected)
+
+        mode_selection_layout.addWidget(self.translation_radio)
+        mode_selection_layout.addWidget(self.explanation_radio)
+        mode_selection_layout.addStretch() # 右寄せ
+
+        main_layout.addLayout(mode_selection_layout)
+        # --- モード選択ラジオボタンここまで ---
+
+
+        # Buttons (Yes/No/Ok/Cancel)
         button_layout = QHBoxLayout()
         button_layout.addStretch() # Push buttons to the right
 
@@ -77,8 +110,17 @@ class CustomMessageBox(QDialog):
         main_layout.addLayout(button_layout)
         
         self.setLayout(main_layout)
-        self.resize(350, 150) # Set recommended initial size
+        self.resize(350, 200) # モード選択分、高さを少し調整
         self.center_on_screen()
+
+    def _on_mode_selected(self, button):
+        """ラジオボタンがクリックされたときに呼び出される。"""
+        if button == self.translation_radio:
+            self.selected_mode = "translation"
+        elif button == self.explanation_radio:
+            self.selected_mode = "explanation"
+        print(f"DEBUG: CustomMessageBox: モードが '{self.selected_mode}' に選択されました。")
+
 
     def center_on_screen(self):
         screen = QApplication.desktop().screenGeometry()
