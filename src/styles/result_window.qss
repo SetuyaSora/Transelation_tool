@@ -1,23 +1,56 @@
 QWidget {
-    background-color: rgba(40, 40, 40, 200);
+    background-color: rgba(40, 40, 40, 200); /* ResultWindow の背景色 */
     border-radius: 15px;
     border: 1px solid rgba(100, 100, 100, 150);
-    color: white;
+    color: white; /* デフォルトの文字色 */
     font-family: Yu Gothic UI, Meiryo, sans-serif;
 }
+
+/* QLabel は FeedbackLabel など、QTextBrowser ではない QLabel に適用される */
 QLabel {
     padding: 5px;
 }
-#translation_label {
+
+/* QTextBrowser の基本スタイル */
+QTextBrowser {
+    background-color: transparent; /* 背景を透明に */
+    border: none; /* 枠線をなくす */
+    padding: 5px; /* テキストのパディング */
+    color: white; /* デフォルトの文字色 */
+}
+
+#translation_label { /* QTextBrowser (翻訳結果) */
     font-size: 14pt;
     font-weight: bold;
     color: #ADD8E6;
 }
-#explanation_label {
+#explanation_label { /* QTextBrowser (解説) */
     font-size: 10pt;
     font-weight: normal;
     color: #C0C0C0;
 }
+
+/* スクロールバーのスタイル（もし表示される場合） */
+QTextBrowser QScrollBar:vertical {
+    border: none;
+    background: rgba(0, 0, 0, 0); /* 背景を透明に */
+    width: 8px;
+    margin: 0px 0px 0px 0px;
+}
+QTextBrowser QScrollBar::handle:vertical {
+    background: rgba(100, 100, 100, 150); /* ハンドルの色 */
+    min-height: 20px;
+    border-radius: 4px;
+}
+QTextBrowser QScrollBar::add-line:vertical, QTextBrowser QScrollBar::sub-line:vertical {
+    height: 0px;
+    width: 0px;
+}
+QTextBrowser QScrollBar::add-page:vertical, QTextBrowser QScrollBar::sub-page:vertical {
+    background: none;
+}
+
+
 #closeButton {
     background-color: rgba(255, 0, 0, 180);
     border-radius: 10px;
@@ -55,3 +88,4 @@ QLabel {
 #settingsButton:hover {
     background-color: #5a6268;
 }
+/* copyButton のスタイルは result_window.py 内で直接定義されているため、ここでは不要 */

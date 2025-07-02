@@ -1,22 +1,23 @@
-from PyQt5.QtWidgets import QWidget, QLabel, QVBoxLayout, QHBoxLayout, QPushButton, QApplication
-from PyQt5.QtCore import Qt, pyqtSignal, QPoint, QRect, QEvent
+from PyQt5.QtWidgets import QWidget, QLabel, QVBoxLayout, QHBoxLayout, QPushButton, QApplication, QTextBrowser
+from PyQt5.QtCore import Qt, pyqtSignal, QPoint, QRect, QEvent, QTimer
 from PyQt5.QtGui import QPainter, QColor, QPen
 import os
-import sys # sys モジュールを追加
+import sys
+import logging
+
+logger = logging.getLogger(__name__)
 
 class ResultWindow(QWidget):
     """
     翻訳結果と解説を表示するウィンドウ。
     ドラッグ移動、リサイズ、最前面表示、フレームレスに対応。
     """
-    # 履歴ウィンドウを表示するためのシグナルを追加
     show_history_signal = pyqtSignal()
-    # 設定ウィンドウを表示するためのシグナルを追加
     show_settings_signal = pyqtSignal()
 
-    def __init__(self, parent=None, config_manager=None): # config_managerを引数に追加
+    def __init__(self, parent=None, config_manager=None):
         super().__init__(parent)
-        print("DEBUG: ResultWindow: __init__ が呼び出されました。")
+        logger.debug("ResultWindow: __init__ が呼び出されました。")
         self.config_manager = config_manager
         
         self.setWindowTitle("翻訳結果と解説")
@@ -26,129 +27,180 @@ class ResultWindow(QWidget):
             Qt.FramelessWindowHint
         )
         
-        # 設定マネージャーから最小サイズを取得
         min_width = self.config_manager.get("result_window.min_width")
         min_height = self.config_manager.get("result_window.min_height")
         self.setMinimumSize(min_width, min_height)
         self.setGeometry(100, 100, min_width, min_height)
 
-        # スタイルシートは外部ファイルから読み込む
-        # 相対パスを渡す
         self._load_stylesheet(os.path.join('..', 'styles', 'result_window.qss'))
 
         header_layout = QHBoxLayout()
         header_layout.setContentsMargins(5, 5, 5, 5)
 
-        # 履歴ボタンを追加
         history_button = QPushButton("履歴", self)
         history_button.setObjectName("historyButton")
         history_button.setFixedSize(60, 20)
-        history_button.clicked.connect(self.show_history_signal.emit) # シグナルを発行
+        history_button.clicked.connect(self.show_history_signal.emit)
         header_layout.addWidget(history_button)
         
-        # 設定ボタンを追加
         settings_button = QPushButton("設定", self)
         settings_button.setObjectName("settingsButton")
         settings_button.setFixedSize(60, 20)
-        settings_button.clicked.connect(self.show_settings_signal.emit) # シグナルを発行
+        settings_button.clicked.connect(self.show_settings_signal.emit)
         header_layout.addWidget(settings_button)
         
-        header_layout.addStretch() # 右寄せのために追加
+        header_layout.addStretch()
 
         close_button = QPushButton("X", self)
         close_button.setObjectName("closeButton")
         close_button_size = self.config_manager.get("result_window.close_button.size")
         close_button.setFixedSize(close_button_size, close_button_size)
-        close_button.clicked.connect(self.hide)
+        close_button.clicked.connect(self.close)
         header_layout.addWidget(close_button)
 
-        self.translation_label = QLabel(self)
-        self.translation_label.setText("翻訳結果: ")
-        self.translation_label.setWordWrap(True)
+        self.translation_label = QTextBrowser(self)
+        self.translation_label.setReadOnly(True)
         self.translation_label.setObjectName("translation_label")
+        self.translation_label.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.translation_label.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
-        self.explanation_label = QLabel(self)
-        self.explanation_label.setText("解説: ")
-        self.explanation_label.setWordWrap(True)
+        self.explanation_label = QTextBrowser(self)
+        self.explanation_label.setReadOnly(True)
         self.explanation_label.setObjectName("explanation_label")
+        self.explanation_label.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.explanation_label.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+
+        self.copy_button = QPushButton("すべてコピー", self)
+        self.copy_button.setObjectName("copyButton")
+        self.copy_button.setFixedSize(90, 25)
+        self.copy_button.clicked.connect(self._copy_to_clipboard)
+        self.copy_button.setStyleSheet("""
+            #copyButton {
+                background-color: #28a745;
+                color: white;
+                border-radius: 5px;
+                font-size: 9pt;
+                font-weight: bold;
+                padding: 0px;
+            }
+            #copyButton:hover {
+                background-color: #218838;
+            }
+        """)
+
+        self.feedback_label = QLabel("", self)
+        self.feedback_label.setAlignment(Qt.AlignCenter)
+        self.feedback_label.setStyleSheet("color: #ADD8E6; font-size: 10pt; font-weight: bold;")
+        self.feedback_label.hide()
 
         main_layout = QVBoxLayout()
         main_layout.addLayout(header_layout)
         main_layout.addWidget(self.translation_label)
         main_layout.addWidget(self.explanation_label)
+        
+        copy_layout = QHBoxLayout()
+        copy_layout.addStretch()
+        copy_layout.addWidget(self.copy_button)
+        copy_layout.addWidget(self.feedback_label)
+        copy_layout.addStretch()
+        main_layout.addLayout(copy_layout)
+
         main_layout.addStretch()
         main_layout.setContentsMargins(10, 10, 10, 10)
         self.setLayout(main_layout)
         
         self.hide()
 
-        # ドラッグ・リサイズ関連のフラグと位置情報
+        # --- ドラッグ・リサイズ関連のフラグと位置情報の初期化を追加 ---
         self._resizing = False
-        self._dragging = False # 新しいフラグ：ドラッグ中か
+        self._dragging = False
         self._resize_start_pos = None
         self._resize_start_geometry = None
         self._resize_edge = []
-        self._drag_start_pos = None # 新しい変数：ドラッグ開始時のオフセット
+        self._drag_start_pos = None
+        # --- 初期化ここまで ---
 
-        self.setMouseTracking(True) # マウス移動イベントを常に受け取る
+        self.setMouseTracking(True)
 
-    def _load_stylesheet(self, qss_relative_path): # 引数をQSSへの相対パスに変更
-        """
-        指定されたQSSファイルを読み込んでスタイルを適用する。
-        PyInstallerでバンドルされた環境を考慮する。
-        """
+    def _load_stylesheet(self, qss_relative_path):
+        """指定されたQSSファイルを読み込んでスタイルを適用する。"""
         base_path = ""
         if getattr(sys, 'frozen', False):
-            # PyInstallerで実行されている場合
-            base_path = sys._MEIPASS # PyInstallerが展開する一時ディレクトリのパス
+            base_path = sys._MEIPASS
         else:
-            # 通常のPythonスクリプトとして実行されている場合
             base_path = os.path.dirname(__file__)
 
-        # QSSファイルの絶対パスを構築
         qss_full_path = os.path.join(base_path, qss_relative_path)
         
         try:
             with open(qss_full_path, 'r', encoding='utf-8') as f:
                 self.setStyleSheet(f.read())
-            # ResultWindow固有の設定を上書き
             self.setWindowOpacity(self.config_manager.get("result_window.opacity"))
-            print(f"DEBUG: スタイルシート '{qss_full_path}' を読み込みました。")
+            logger.debug(f"スタイルシート '{qss_full_path}' を読み込みました。")
         except FileNotFoundError:
-            print(f"ERROR: スタイルシートファイル '{qss_full_path}' が見つかりませんでした。")
+            logger.error(f"スタイルシートファイル '{qss_full_path}' が見つかりませんでした。")
         except Exception as e:
-            print(f"ERROR: スタイルシートの読み込み中にエラーが発生しました: {e}")
+            logger.exception(f"スタイルシートの読み込み中にエラーが発生しました。")
 
     def update_content(self, translation, explanation):
-        self.translation_label.setText(f"翻訳結果: \n{translation}")
-        self.explanation_label.setText(f"解説: \n{explanation}")
+        self.translation_label.setPlainText(f"翻訳結果: \n{translation}")
+        self.explanation_label.setPlainText(f"解説: \n{explanation}")
         self.show()
         self.activateWindow()
 
+    def _copy_to_clipboard(self):
+        """翻訳結果と解説をクリップボードにコピーする。"""
+        translation_text = self.translation_label.toPlainText().replace("翻訳結果: \n", "")
+        explanation_text = self.explanation_label.toPlainText().replace("解説: \n", "")
+        
+        combined_text = ""
+        if translation_text.strip():
+            combined_text += translation_text.strip()
+        if explanation_text.strip():
+            if combined_text:
+                combined_text += "\n\n"
+            combined_text += explanation_text.strip()
+
+        if combined_text:
+            clipboard = QApplication.clipboard()
+            clipboard.setText(combined_text)
+            logger.info("翻訳結果と解説をクリップボードにコピーしました。")
+            self._show_feedback_message("コピーしました！")
+        else:
+            logger.info("コピーする内容がありませんでした。")
+            self._show_feedback_message("コピーする内容がありません")
+
+    def _show_feedback_message(self, message):
+        """一時的なフィードバックメッセージを表示する。"""
+        self.feedback_label.setText(message)
+        self.feedback_label.show()
+        QTimer.singleShot(2000, self.feedback_label.hide)
+
+
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape:
-            print("DEBUG: Escキーが押されました。結果ウィンドウを閉じます。")
-            self.hide()
+            logger.debug("Escキーが押されました。結果ウィンドウを閉じます。")
+            self.close()
 
-    # --- デバッグ用ログ追加 ---
     def show(self):
-        print("DEBUG: ResultWindow: show() が呼び出されました。")
+        logger.debug("ResultWindow: show() が呼び出されました。")
         super().show()
 
     def hide(self):
-        print("DEBUG: ResultWindow: hide() が呼び出されました。")
+        logger.debug("ResultWindow: hide() が呼び出されました。")
         super().hide()
 
     def closeEvent(self, event):
-        print("DEBUG: ResultWindow: closeEvent() が呼び出されました。")
-        super().closeEvent(event)
+        logger.debug("ResultWindow: closeEvent() が呼び出されました。")
+        self.hide()
+        event.ignore()
+        logger.info("ResultWindowをシステムトレイに隠しました。")
     
     def __del__(self):
-        print("DEBUG: ResultWindow: __del__() が呼び出されました。ResultWindowが破棄されています。")
+        logger.debug("ResultWindow: __del__() が呼び出されました。ResultWindowが破棄されています。")
         super().__del__()
-    # --- デバッグ用ログここまで ---
 
-    _border_width = 8 # クラス変数として定義
+    _border_width = 8
 
     def _is_at_border(self, pos):
         """マウスカーソルがウィンドウの境界線付近にあるか判定する。"""
@@ -202,9 +254,9 @@ class ResultWindow(QWidget):
         dy = global_pos.y() - self._resize_start_pos.y()
 
         new_x, new_y, new_width, new_height = self._resize_start_geometry.x(), \
-                                            self._resize_start_geometry.y(), \
-                                            self._resize_start_geometry.width(), \
-                                            self._resize_start_geometry.height()
+                                             self._resize_start_geometry.y(), \
+                                             self._resize_start_geometry.width(), \
+                                             self._resize_start_geometry.height()
 
         for edge in self._resize_edge:
             if edge == "left":
@@ -234,7 +286,6 @@ class ResultWindow(QWidget):
         self.setGeometry(new_x, new_y, new_width, new_height)
 
     def mousePressEvent(self, event):
-        """マウスが押された時のイベントハンドラ。ドラッグまたはリサイズを開始する。"""
         if event.button() == Qt.LeftButton:
             local_pos = self.mapFromGlobal(event.globalPos())
             if self._is_at_border(local_pos):
@@ -243,34 +294,28 @@ class ResultWindow(QWidget):
                 self._resize_start_geometry = self.geometry()
                 self._resize_edge = self._get_resize_edge(local_pos)
                 self.setCursor(self._get_cursor_shape(local_pos))
-                self._dragging = False # リサイズ中なのでドラッグではない
+                self._dragging = False
             else:
                 self._dragging = True
-                # ウィンドウの左上隅とマウスのグローバル位置のオフセットを記録
                 self._drag_start_pos = event.globalPos() - self.pos() 
-                self._resizing = False # ドラッグ中なのでリサイズではない
-        super().mousePressEvent(event) # 基底クラスのイベントハンドラも呼び出す
+                self._resizing = False
+        super().mousePressEvent(event)
 
     def mouseMoveEvent(self, event):
-        """マウスが移動した時のイベントハンドラ。ドラッグまたはリサイズを実行する。"""
-        if event.buttons() == Qt.LeftButton: # 左クリックが押されている場合
+        if event.buttons() == Qt.LeftButton:
             if self._resizing:
                 self._handle_resize(event.globalPos())
             elif self._dragging:
-                # ウィンドウの新しい位置を計算
                 self.move(event.globalPos() - self._drag_start_pos)
-        else: # ボタンが押されていない場合 (マウスオーバー)
+        else:
             local_pos = self.mapFromGlobal(event.globalPos())
-            # ドラッグもリサイズもしていない場合のみカーソル形状を更新
             if not self._dragging and not self._resizing:
                 current_cursor = self._get_cursor_shape(local_pos)
                 self.setCursor(current_cursor)
-        super().mouseMoveEvent(event) # 基底クラスのイベントハンドラも呼び出す
+        super().mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event):
-        """マウスボタンが離された時のイベントハンドラ。ドラッグまたはリサイズを終了する。"""
         self._dragging = False
         self._resizing = False
-        self.setCursor(Qt.ArrowCursor) # カーソルをデフォルトに戻す
-        super().mouseReleaseEvent(event) # 基底クラスのイベントハンドラも呼び出す
-
+        self.setCursor(Qt.ArrowCursor)
+        super().mouseReleaseEvent(event)

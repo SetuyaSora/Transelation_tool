@@ -1,5 +1,8 @@
 import os
 import yaml
+import logging # logging モジュールを追加
+
+logger = logging.getLogger(__name__) # このモジュール用のロガーを取得
 
 class ConfigManager:
     """
@@ -67,7 +70,7 @@ class ConfigManager:
 
 解説:
 - [対象の名称]: [詳細な解説]
-""" # 新しい解説モード用のプロンプト
+"""
         },
         "behavior": {
             "show_api_confirmation": True
@@ -82,7 +85,7 @@ class ConfigManager:
     def __init__(self, settings_file_path):
         self.settings_file_path = settings_file_path
         self._settings_data = self._load_settings()
-        print(f"DEBUG: ConfigManager: 設定ファイル '{self.settings_file_path}' から設定をロードしました。")
+        logger.debug(f"ConfigManager: 設定ファイル '{self.settings_file_path}' から設定をロードしました。")
 
     def _load_settings(self):
         """設定ファイルを読み込み、デフォルト設定とマージする。"""
@@ -93,10 +96,10 @@ class ConfigManager:
             self._deep_merge_dicts(merged_settings, user_settings)
             return merged_settings
         except FileNotFoundError:
-            print(f"WARNING: 設定ファイル '{self.settings_file_path}' が見つかりませんでした。デフォルト設定を使用します。")
+            logger.warning(f"設定ファイル '{self.settings_file_path}' が見つかりませんでした。デフォルト設定を使用します。")
             return self.DEFAULT_SETTINGS.copy()
         except yaml.YAMLError as e:
-            print(f"ERROR: 設定ファイル '{self.settings_file_path}' の読み込み中にエラーが発生しました: {e}")
+            logger.exception(f"設定ファイル '{self.settings_file_path}' の読み込み中にエラーが発生しました。")
             return self.DEFAULT_SETTINGS.copy()
 
     def save_settings(self):
@@ -104,9 +107,9 @@ class ConfigManager:
         try:
             with open(self.settings_file_path, 'w', encoding='utf-8') as f:
                 yaml.safe_dump(self._settings_data, f, allow_unicode=True, indent=4)
-            print(f"DEBUG: ConfigManager: 設定を '{self.settings_file_path}' に保存しました。")
+            logger.debug(f"ConfigManager: 設定を '{self.settings_file_path}' に保存しました。")
         except Exception as e:
-            print(f"ERROR: ConfigManager: 設定の保存中にエラーが発生しました: {e}")
+            logger.exception(f"ConfigManager: 設定の保存中にエラーが発生しました。")
 
     def get(self, key_path, default=None):
         """
@@ -120,6 +123,7 @@ class ConfigManager:
                 current_value = current_value[key]
             return current_value
         except (KeyError, TypeError):
+            logger.warning(f"ConfigManager: 設定キーパス '{key_path}' が見つかりませんでした。デフォルト値 '{default}' を使用します。")
             return default
 
     def set(self, key_path, value):
@@ -136,12 +140,7 @@ class ConfigManager:
                 if key not in current_dict or not isinstance(current_dict[key], dict):
                     current_dict[key] = {}
                 current_dict = current_dict[key]
-        print(f"DEBUG: ConfigManager: 設定 '{key_path}' を '{value}' に更新しました。")
-
-    def reload(self):
-        """設定をファイルから再ロードする。"""
-        self._settings_data = self._load_settings()
-        print("DEBUG: ConfigManager: 設定を再ロードしました。")
+        logger.debug(f"ConfigManager: 設定 '{key_path}' を '{value}' に更新しました。")
 
     def _deep_merge_dicts(self, default_dict, override_dict):
         """辞書を再帰的にマージするヘルパー関数。"""
@@ -151,4 +150,9 @@ class ConfigManager:
             else:
                 default_dict[key] = value
         return default_dict
+
+    def reload(self):
+        """設定をファイルから再ロードする。"""
+        self._settings_data = self._load_settings()
+        logger.debug("ConfigManager: 設定を再ロードしました。")
 

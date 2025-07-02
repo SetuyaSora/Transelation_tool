@@ -2,23 +2,31 @@ import sys
 import os
 from dotenv import load_dotenv
 import google.generativeai as genai
-from PyQt5.QtWidgets import QApplication, QMessageBox
-from PyQt5.QtCore import QTimer
+from PyQt5.QtWidgets import QApplication, QMessageBox, QSystemTrayIcon, QMenu, QAction # QSystemTrayIcon, QMenu, QAction を追加
+from PyQt5.QtCore import QTimer, Qt # Qt を追加
+from PyQt5.QtGui import QIcon # QIcon を追加
+import logging
 
 # 分割したモジュールをインポート
 from src.config.config_manager import ConfigManager
 from src.utils.helper_functions import hotkey_signal, set_global_hotkey, get_key_name_from_vk_code
+from src.utils.logger_config import configure_logging
 
 from src.windows.selection_window import SelectionWindow
 from src.windows.result_window import ResultWindow
 from src.windows.history_window import HistoryWindow
 from src.windows.settings_window import SettingsWindow
 
+# --- ログ設定の初期化 (アプリケーションの最初に呼び出す) ---
+configure_logging(log_dir="logs", log_file_name="app.log", log_level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+
 # --- 定数の定義 ---
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 SETTINGS_FILE = os.path.join(SCRIPT_DIR, "setting.yaml")
 HISTORY_FILE = os.path.join(SCRIPT_DIR, "translation_history.json")
-OUTPUT_FOLDER = "screenshots" # スクリーンショット保存フォルダ
+OUTPUT_FOLDER = "screenshots"
+APP_ICON_PATH = os.path.join(SCRIPT_DIR, "app_icon.ico") # アイコンファイルのパス
 
 # --- 環境変数のロード ---
 load_dotenv()
@@ -29,7 +37,7 @@ config_manager = ConfigManager(SETTINGS_FILE)
 # ConfigManagerにOUTPUT_FOLDERをセット (設定ファイルにない場合に追加)
 if config_manager.get("OUTPUT_FOLDER") is None:
     config_manager.set("OUTPUT_FOLDER", OUTPUT_FOLDER)
-    config_manager.save_settings() # 新しい設定を保存
+    config_manager.save_settings()
 
 # ホットキーの仮想キーコードをConfigManagerから取得
 HOTKEY_VK_CODE = config_manager.get("hotkey.key_code")
@@ -37,11 +45,11 @@ HOTKEY_VK_CODE = config_manager.get("hotkey.key_code")
 # --- Gemini APIキーの設定 ---
 API_KEY = os.getenv("GEMINI_API_KEY")
 if not API_KEY:
-    print("ERROR: 環境変数 'GEMINI_API_KEY' が設定されていません。")
-    print("APIキーを設定してから再度実行してください。")
+    logger.error("環境変数 'GEMINI_API_KEY' が設定されていません。")
+    logger.error("APIキーを設定してから再度実行してください。")
     sys.exit(1)
 genai.configure(api_key=API_KEY)
-print("DEBUG: Gemini APIが設定されました。")
+logger.info("Gemini APIが設定されました。")
 
 # --- アプリケーションのメインロジック ---
 app = None
@@ -49,92 +57,143 @@ selection_window = None
 result_window = None
 history_window = None
 settings_window = None
+tray_icon = None # システムトレイアイコンのグローバル参照
 
 def on_hotkey_pressed():
     """グローバルホットキーが押されたときに呼び出されるスロット。"""
     if not selection_window.isVisible():
-        print("DEBUG: ホットキー検出！範囲選択を開始します。")
+        logger.debug("ホットキー検出！範囲選択を開始します。")
         selection_window.showFullScreen()
         selection_window.raise_()
         selection_window.activateWindow()
 
-
 def show_settings_dialog():
     """設定ウィンドウをモーダル表示するヘルパー関数。"""
-    global settings_window # グローバル変数として参照
+    global settings_window
     if settings_window:
-        print("DEBUG: show_settings_dialog: 設定ウィンドウをモーダル表示します。")
-        settings_window.exec_() # モーダル表示
-        print("DEBUG: show_settings_dialog: 設定ウィンドウが閉じられました。")
-        # settings_window.exec_() が完了したら、result_window は通常表示されたままのはず
-        # 念のため、result_window を最前面に持ってくる
+        logger.debug("show_settings_dialog: 設定ウィンドウをモーダル表示します。")
+        settings_window.exec_()
+        logger.debug("show_settings_dialog: 設定ウィンドウが閉じられました。")
         if result_window.isVisible():
-            print("DEBUG: show_settings_dialog: result_window は表示されています。最前面に持っていきます。")
+            logger.debug("show_settings_dialog: result_window は表示されています。最前面に持っていきます。")
             result_window.raise_()
             result_window.activateWindow()
         else:
-            print("DEBUG: show_settings_dialog: result_window は表示されていませんでした。")
+            logger.debug("show_settings_dialog: result_window は表示されていませんでした。")
     else:
-        print("ERROR: show_settings_dialog: settings_window が初期化されていません。")
+        logger.error("show_settings_dialog: settings_window が初期化されていません。")
 
+def show_result_window_from_tray():
+    """システムトレイから翻訳結果ウィンドウを表示する。"""
+    if result_window:
+        logger.info("システムトレイから翻訳結果ウィンドウを表示します。")
+        result_window.show()
+        result_window.raise_()
+        result_window.activateWindow()
+    else:
+        logger.warning("result_window が初期化されていないため、表示できません。")
+
+def hide_result_window_to_tray():
+    """翻訳結果ウィンドウを非表示にしてシステムトレイに送る。"""
+    if result_window:
+        logger.info("翻訳結果ウィンドウを非表示にしてシステムトレイに送ります。")
+        result_window.hide()
+    else:
+        logger.warning("result_window が初期化されていないため、非表示にできません。")
+
+def quit_application():
+    """アプリケーションを完全に終了する。"""
+    logger.info("アプリケーションを終了します。")
+    if tray_icon:
+        tray_icon.hide() # トレイアイコンを非表示にする
+    QApplication.quit() # アプリケーションを終了
 
 if __name__ == "__main__":
-    print("DEBUG: メインスクリプト開始。")
+    logger.info("メインスクリプト開始。")
     
     app = QApplication(sys.argv)
     # 最後のウィンドウが閉じられてもアプリが終了しないように設定
-    app.setQuitOnLastWindowClosed(False) # ここを追加！
-    print("DEBUG: QApplicationインスタンスを作成しました。")
+    # システムトレイアイコンを使用する場合、これをFalseに設定することが重要
+    app.setQuitOnLastWindowClosed(False)
     
-    # 各ウィンドウインスタンスの作成とConfigManager、履歴ファイルパスの引き渡し
+    # アプリケーションアイコンの設定
+    if os.path.exists(APP_ICON_PATH):
+        app.setWindowIcon(QIcon(APP_ICON_PATH))
+        logger.info(f"アプリケーションアイコンを '{APP_ICON_PATH}' に設定しました。")
+    else:
+        logger.warning(f"アプリケーションアイコンファイル '{APP_ICON_PATH}' が見つかりませんでした。デフォルトアイコンを使用します。")
+
+    logger.info("QApplicationインスタンスを作成しました。")
+    
     result_window = ResultWindow(config_manager=config_manager)
     result_window.hide()
-    print("DEBUG: ResultWindowインスタンスを作成し、非表示にしました。")
+    logger.info("ResultWindowインスタンスを作成し、非表示にしました。")
 
     history_window = HistoryWindow(history_file_path=HISTORY_FILE)
     history_window.hide()
-    print("DEBUG: HistoryWindowインスタンスを作成し、非表示にしました。")
+    logger.info("HistoryWindowインスタンスを作成し、非表示にしました。")
 
-    # SettingsWindowにはparent=Noneを指定し、独立したトップレベルウィンドウにする
-    settings_window = SettingsWindow(parent=None, config_manager=config_manager) # parent=None に変更！
+    settings_window = SettingsWindow(parent=None, config_manager=config_manager)
     settings_window.hide()
-    print("DEBUG: SettingsWindowインスタンスを作成し、非表示にしました。")
+    logger.info("SettingsWindowインスタンスを作成し、非表示にしました。")
 
-    # SelectionWindowにはresult_windowの参照も渡す
     selection_window = SelectionWindow(
         config_manager=config_manager,
         history_file_path=HISTORY_FILE,
-        result_window=result_window # ここでresult_windowを渡す
+        result_window=result_window
     )
     selection_window.hide()
-    print("DEBUG: SelectionWindowインスタンスを作成し、非表示にしました。")
+    logger.info("SelectionWindowインスタンスを作成し、非表示にしました。")
 
-    # ウィンドウ間のシグナル接続
+    # --- システムトレイアイコンの設定 ---
+    if QSystemTrayIcon.isSystemTrayAvailable():
+        tray_icon = QSystemTrayIcon(app.windowIcon(), app) # アプリケーションアイコンを使用
+        tray_icon.setToolTip("スクリーンショット翻訳ツール")
+
+        # コンテキストメニューの作成
+        tray_menu = QMenu()
+        show_action = QAction("表示", app)
+        show_action.triggered.connect(show_result_window_from_tray)
+        tray_menu.addAction(show_action)
+
+        hide_action = QAction("非表示", app)
+        hide_action.triggered.connect(hide_result_window_to_tray)
+        tray_menu.addAction(hide_action)
+
+        tray_menu.addSeparator() # 区切り線
+
+        quit_action = QAction("終了", app)
+        quit_action.triggered.connect(quit_application)
+        tray_menu.addAction(quit_action)
+
+        tray_icon.setContextMenu(tray_menu)
+
+        # クリックイベントの接続 (左クリックで表示/非表示を切り替える)
+        tray_icon.activated.connect(lambda reason: show_result_window_from_tray() if reason == QSystemTrayIcon.Trigger else None)
+        
+        tray_icon.show()
+        logger.info("システムトレイアイコンが作成され、表示されました。")
+    else:
+        logger.warning("システムトレイが利用できません。システムトレイアイコンは表示されません。")
+    # --- システムトレイアイコンの設定ここまで ---
+
+
     result_window.show_history_signal.connect(history_window.show)
-    # settings_window.show() の代わりに show_settings_dialog() を接続
     result_window.show_settings_signal.connect(show_settings_dialog)
     
-    # settings_window.finished.connect(result_window.show) は不要になるので削除
-    # result_window.show_settings_signal.connect(show_settings_dialog) で exec_() がブロックするため、
-    # その後の result_window.show() は show_settings_dialog 内で行う
-
-    # 設定が保存されたら、ConfigManagerをリロードして最新の設定を反映させる
     settings_window.settings_saved.connect(lambda: config_manager.reload())
     settings_window.settings_saved.connect(
-        lambda: print(f"DEBUG: 設定が保存されました。新しいホットキー: 0x{config_manager.get('hotkey.key_code'):X}")
+        lambda: logger.debug(f"設定が保存されました。新しいホットキー: 0x{config_manager.get('hotkey.key_code'):X}")
     )
-    # 設定が保存されたらグローバルホットキーを更新
     settings_window.settings_saved.connect(lambda: set_global_hotkey(config_manager.get("hotkey.key_code")))
 
-    # pynputのホットキーシグナルとSelectionWindowの表示を接続
     hotkey_signal.hotkey_pressed.connect(on_hotkey_pressed)
 
-    # アプリケーション起動時にグローバルホットキーリスナーを開始
-    set_global_hotkey(HOTKEY_VK_CODE) # 初期ホットキーを設定
+    set_global_hotkey(HOTKEY_VK_CODE)
 
-    print(f"ショートカットキー（現在の設定: {get_key_name_from_vk_code(HOTKEY_VK_CODE)}）を監視中です...")
-    print("Ctrl+Cでプログラムを終了できます。")
+    logger.info(f"ショートカットキー（現在の設定: {get_key_name_from_vk_code(HOTKEY_VK_CODE)}）を監視中です...")
+    logger.info("Ctrl+Cでプログラムを終了できます。")
     
     sys.exit(app.exec_())
-    print("DEBUG: QApplicationのイベントループが終了しました。")
+    logger.info("QApplicationのイベントループが終了しました。")
 

@@ -4,6 +4,7 @@ import time
 import os
 from PIL import Image
 from io import BytesIO
+import logging # logging モジュールを追加
 
 from PyQt5.QtWidgets import QApplication, QWidget, QMessageBox
 from PyQt5.QtCore import Qt, QRect, QBuffer, QIODevice, QTimer
@@ -16,13 +17,15 @@ from src.widgets.loading_indicator import LoadingIndicator
 from src.config.config_manager import ConfigManager
 from src.utils.helper_functions import add_translation_entry, save_translation_history, load_translation_history
 
+logger = logging.getLogger(__name__) # このモジュール用のロガーを取得
+
 class SelectionWindow(QWidget):
     """
     スクリーンショット範囲を選択するための半透明オーバーレイウィンドウ。
     """
     def __init__(self, parent=None, config_manager=None, history_file_path=None, result_window=None):
         super().__init__(parent)
-        print("DEBUG: SelectionWindow: __init__ が呼び出されました。")
+        logger.debug("SelectionWindow: __init__ が呼び出されました。")
         self.config_manager = config_manager
         self.history_file_path = history_file_path
         self.result_window = result_window
@@ -38,7 +41,7 @@ class SelectionWindow(QWidget):
 
         screen_geometry = QApplication.instance().desktop().screenGeometry()
         self.setGeometry(screen_geometry)
-        print(f"DEBUG: SelectionWindow: 画面サイズを {screen_geometry.width()}x{screen_geometry.height()} に設定しました。")
+        logger.debug(f"SelectionWindow: 画面サイズを {screen_geometry.width()}x{screen_geometry.height()} に設定しました。")
 
         self.start_point = None
         self.end_point = None
@@ -46,7 +49,7 @@ class SelectionWindow(QWidget):
         self.worker_thread = None
         self.loading_indicator = LoadingIndicator(self)
         self.loading_indicator.hide()
-        print("DEBUG: SelectionWindow: 初期化完了。")
+        logger.debug("SelectionWindow: 初期化完了。")
 
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
@@ -64,7 +67,7 @@ class SelectionWindow(QWidget):
             self.end_point = event.pos()
             self.selecting = False
             self.hide()
-            print("DEBUG: mouseReleaseEvent: ウィンドウを非表示にしました。")
+            logger.debug("mouseReleaseEvent: ウィンドウを非表示にしました。")
 
             if self.start_point and self.end_point:
                 x1 = min(self.start_point.x(), self.end_point.x())
@@ -73,19 +76,18 @@ class SelectionWindow(QWidget):
                 y2 = max(self.start_point.y(), self.end_point.y())
 
                 if abs(x2 - x1) < 10 or abs(y2 - y1) < 10:
-                    print("DEBUG: 選択範囲が小さすぎます。処理を中断します。")
+                    logger.debug("選択範囲が小さすぎます。処理を中断します。")
                     self.show_custom_messagebox("エラー", "選択範囲が小さすぎます。", QMessageBox.Warning)
                     return
 
                 screenshot_data = self.take_selected_screenshot_in_memory(x1, y1, x2 - x1, y2 - y1)
                 
                 original_text_from_ocr = self._perform_ocr(screenshot_data)
+                logger.debug(f"OCR抽出結果: {original_text_from_ocr[:100]}..." if original_text_from_ocr else "OCRでテキストが抽出できませんでした。")
 
                 if screenshot_data:
-                    # デフォルトモードを取得
                     current_gemini_mode = self.config_manager.get("gemini_settings.mode", "translation")
                     
-                    # API送信確認ダイアログの表示
                     if self.config_manager.get("behavior.show_api_confirmation"):
                         dialog = CustomMessageBox(
                             self,
@@ -93,7 +95,7 @@ class SelectionWindow(QWidget):
                             "スクリーンショットをGemini APIに送信して翻訳しますか？",
                             QMessageBox.Question,
                             QMessageBox.Yes | QMessageBox.No,
-                            current_mode=current_gemini_mode # 現在の設定モードを渡す
+                            current_mode=current_gemini_mode
                         )
                         script_dir = os.path.dirname(__file__)
                         qss_file_path = os.path.join(script_dir, '..', 'styles', 'custom_message_box.qss')
@@ -101,22 +103,20 @@ class SelectionWindow(QWidget):
                             with open(qss_file_path, 'r', encoding='utf-8') as f:
                                 dialog.setStyleSheet(f.read())
                         except FileNotFoundError:
-                            print(f"ERROR: スタイルシートファイル '{qss_file_path}' が見つかりませんでした。")
+                            logger.error(f"スタイルシートファイル '{qss_file_path}' が見つかりませんでした。")
                         except Exception as e:
-                            print(f"ERROR: スタイルシートの読み込み中にエラーが発生しました: {e}")
+                            logger.exception(f"スタイルシートの読み込み中にエラーが発生しました。")
 
                         reply = dialog.exec_()
-                        selected_mode = dialog.selected_mode # ダイアログから選択されたモードを取得
+                        selected_mode = dialog.selected_mode
                     else:
                         reply = QMessageBox.Yes
-                        selected_mode = current_gemini_mode # 確認ダイアログをスキップする場合、設定モードを使用
+                        selected_mode = current_gemini_mode
 
                     if reply == QMessageBox.Yes:
-                        print(f"DEBUG: API送信が承認されました。選択されたモード: {selected_mode}")
+                        logger.debug(f"API送信が承認されました。選択されたモード: {selected_mode}")
                         self.loading_indicator.show()
                         
-                        # 選択されたモードをConfigManagerに一時的に設定
-                        # GeminiWorkerはこのConfigManagerのインスタンスを参照するため、新しいモードで動作する
                         self.config_manager.set("gemini_settings.mode", selected_mode)
 
                         self.worker_thread = GeminiWorker(screenshot_data, original_text_from_ocr, self.config_manager, self.history_file_path)
@@ -124,13 +124,13 @@ class SelectionWindow(QWidget):
                         self.worker_thread.error.connect(self.on_gemini_error)
                         self.worker_thread.start()
                     else:
-                        print("DEBUG: API送信がキャンセルされました。")
+                        logger.debug("API送信がキャンセルされました。")
                 else:
                     self.show_custom_messagebox("エラー", "スクリーンショットの取得に失敗しました。", QMessageBox.Critical)
             
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape:
-            print("DEBUG: Escキーが押されました。選択をキャンセルします。")
+            logger.debug("Escキーが押されました。選択をキャンセルします。")
             self.hide()
 
     def paintEvent(self, event):
@@ -142,12 +142,12 @@ class SelectionWindow(QWidget):
             painter.drawRect(rect)
 
     def take_selected_screenshot_in_memory(self, x, y, width, height):
-        print(f"DEBUG: take_selected_screenshot: スクリーンショット範囲 ({x},{y},{width},{height})")
+        logger.debug(f"take_selected_screenshot: スクリーンショット範囲 ({x},{y},{width},{height})")
         
         output_folder = self.config_manager.get("OUTPUT_FOLDER", "screenshots")
         if not os.path.exists(output_folder):
             os.makedirs(output_folder)
-            print(f"DEBUG: フォルダ '{output_folder}' を作成しました。")
+            logger.debug(f"フォルダ '{output_folder}' を作成しました。")
 
         with mss.mss() as sct:
             monitor = {"top": y, "left": x, "width": width, "height": height}
@@ -161,15 +161,15 @@ class SelectionWindow(QWidget):
 
             try:
                 img_pil.save(filepath, "PNG")
-                print(f"DEBUG: スクリーンショットをファイルに保存しました: {filepath}")
+                logger.debug(f"スクリーンショットをファイルに保存しました: {filepath}")
             except Exception as e:
-                print(f"ERROR: スクリーンショットのファイル保存中にエラーが発生しました: {e}")
+                logger.exception(f"スクリーンショットのファイル保存中にエラーが発生しました。")
                 return None
 
             byte_array = QBuffer()
             byte_array.open(QIODevice.WriteOnly)
             img_pil.save(byte_array, "PNG")
-            print("DEBUG: スクリーンショットをメモリに取得しました。")
+            logger.debug("スクリーンショットをメモリに取得しました。")
             return byte_array.buffer().data()
 
     def _perform_ocr(self, image_data):
@@ -183,7 +183,7 @@ class SelectionWindow(QWidget):
         ocr_config_str = self.config_manager.get("ocr_settings.config", "--psm 3")
 
         if not tesseract_path:
-            print("DEBUG: OCRスキップ: setting.yamlでtesseract_pathが指定されていません。")
+            logger.debug("OCRスキップ: setting.yamlでtesseract_pathが指定されていません。")
             return ""
         
         try:
@@ -191,7 +191,7 @@ class SelectionWindow(QWidget):
         except ImportError:
             error_msg = "OCR機能は有効ですが、pytesseractライブラリが見つかりません。\n" \
                         "'pip install pytesseract' を実行してください。"
-            print(f"ERROR: OCR処理中にエラーが発生しました: {error_msg}")
+            logger.error(f"OCR処理中にエラーが発生しました: {error_msg}")
             self.show_custom_messagebox("OCRエラー", error_msg, QMessageBox.Critical)
             return ""
 
@@ -206,12 +206,12 @@ class SelectionWindow(QWidget):
                         "Tesseract OCRエンジンが見つかりません。\n" \
                         "Tesseractがインストールされ、PATHに設定されているか、\n" \
                         "またはsetting.yamlのocr_settings.tesseract_pathに正しいパスが指定されているか確認してください。"
-            print(f"ERROR: OCR処理中にエラーが発生しました: {error_msg}")
+            logger.error(f"OCR処理中にエラーが発生しました: {error_msg}")
             self.show_custom_messagebox("OCRエラー", error_msg, QMessageBox.Critical)
             return ""
         except Exception as e:
             error_msg = f"OCR処理中に予期せぬエラーが発生しました: {e}"
-            print(f"ERROR: OCR処理中にエラーが発生しました: {error_msg}")
+            logger.exception(f"OCR処理中に予期せぬエラーが発生しました。")
             self.show_custom_messagebox("OCRエラー", error_msg, QMessageBox.Critical)
             return ""
 
@@ -220,7 +220,6 @@ class SelectionWindow(QWidget):
         """Slot called when Gemini API processing is complete"""
         self.loading_indicator.hide()
 
-        # 翻訳結果を履歴に追加
         history_data = load_translation_history(self.history_file_path)
         add_translation_entry(history_data, original_text, translation, explanation)
         save_translation_history(self.history_file_path, history_data)
@@ -243,8 +242,6 @@ class SelectionWindow(QWidget):
         Function to display a custom message box.
         Uses the CustomMessageBox class.
         """
-        # ここでは常にデフォルトモードを渡すが、API送信確認ダイアログの呼び出し元で
-        # current_mode を渡すようにしているため、ここは変更不要。
         dialog = CustomMessageBox(self, title, message, icon_type, buttons)
         script_dir = os.path.dirname(__file__)
         qss_file_path = os.path.join(script_dir, '..', 'styles', 'custom_message_box.qss')
@@ -252,8 +249,8 @@ class SelectionWindow(QWidget):
             with open(qss_file_path, 'r', encoding='utf-8') as f:
                 dialog.setStyleSheet(f.read())
         except FileNotFoundError:
-            print(f"ERROR: スタイルシートファイル '{qss_file_path}' が見つかりませんでした。")
+            logger.error(f"スタイルシートファイル '{qss_file_path}' が見つかりませんでした。")
         except Exception as e:
-            print(f"ERROR: スタイルシートの読み込み中にエラーが発生しました: {e}")
+            logger.exception(f"スタイルシートの読み込み中にエラーが発生しました。")
         return dialog.exec_()
 
