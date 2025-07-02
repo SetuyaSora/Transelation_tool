@@ -1,5 +1,7 @@
 from PyQt5.QtWidgets import QWidget, QLabel, QVBoxLayout, QApplication
 from PyQt5.QtCore import Qt
+import os # os モジュールを追加
+import sys # sys モジュールを追加
 # from PyQt5.QtGui import QMovie # GIFアニメーションを使う場合に必要
 
 class LoadingIndicator(QWidget):
@@ -18,14 +20,41 @@ class LoadingIndicator(QWidget):
 
         # Loading message
         self.message_label = QLabel("翻訳中...", self)
-        # self.message_label.setStyleSheet("color: white; font-size: 14pt; font-weight: bold;") # スタイルはQSSから
         self.message_label.setAlignment(Qt.AlignCenter)
         main_layout.addWidget(self.message_label)
         
         # Simple pulsating animation (can be replaced with GIF if available)
         self.setFixedSize(200, 100) # Fixed size for the loading indicator
-        # self.setStyleSheet(""" ... """) # スタイルはQSSから
+        # スタイルシートは外部ファイルから読み込む
+        # 相対パスを渡す
+        self._load_stylesheet(os.path.join('..', 'styles', 'loading_indicator.qss'))
+
         self.center_on_screen()
+
+    def _load_stylesheet(self, qss_relative_path): # 引数をQSSへの相対パスに変更
+        """
+        指定されたQSSファイルを読み込んでスタイルを適用する。
+        PyInstallerでバンドルされた環境を考慮する。
+        """
+        base_path = ""
+        if getattr(sys, 'frozen', False):
+            # PyInstallerで実行されている場合
+            base_path = sys._MEIPASS # PyInstallerが展開する一時ディレクトリのパス
+        else:
+            # 通常のPythonスクリプトとして実行されている場合
+            base_path = os.path.dirname(__file__)
+
+        # QSSファイルの絶対パスを構築
+        qss_full_path = os.path.join(base_path, qss_relative_path)
+        
+        try:
+            with open(qss_full_path, 'r', encoding='utf-8') as f:
+                self.setStyleSheet(f.read())
+            print(f"DEBUG: スタイルシート '{qss_full_path}' を読み込みました。")
+        except FileNotFoundError:
+            print(f"ERROR: スタイルシートファイル '{qss_full_path}' が見つかりませんでした。")
+        except Exception as e:
+            print(f"ERROR: スタイルシートの読み込み中にエラーが発生しました: {e}")
 
     def center_on_screen(self):
         screen = QApplication.desktop().screenGeometry()
@@ -38,4 +67,3 @@ class LoadingIndicator(QWidget):
         # Bring to front
         self.raise_()
         self.activateWindow()
-

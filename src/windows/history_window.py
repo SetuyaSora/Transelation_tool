@@ -4,7 +4,8 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import Qt, QPoint, QRect, QEvent
 from PyQt5.QtGui import QPainter, QColor, QPen
-import os # os モジュールを追加
+import os
+import sys # sys モジュールを追加
 from src.utils.helper_functions import load_translation_history # 履歴読み込み関数をインポート
 
 class HistoryWindow(QDialog):
@@ -50,7 +51,8 @@ class HistoryWindow(QDialog):
         self.resize(500, 400) # Default size for history window
         self.center_on_screen()
         # スタイルシートは外部ファイルから読み込む
-        self._load_stylesheet(os.path.join(os.path.dirname(__file__), '..', 'styles', 'history_window.qss'))
+        # 相対パスを渡す
+        self._load_stylesheet(os.path.join('..', 'styles', 'history_window.qss'))
 
         self.load_and_display_history()
 
@@ -64,14 +66,28 @@ class HistoryWindow(QDialog):
 
         self.setMouseTracking(True) # マウス移動イベントを常に受け取る
 
+    def _load_stylesheet(self, qss_relative_path): # 引数をQSSへの相対パスに変更
+        """
+        指定されたQSSファイルを読み込んでスタイルを適用する。
+        PyInstallerでバンドルされた環境を考慮する。
+        """
+        base_path = ""
+        if getattr(sys, 'frozen', False):
+            # PyInstallerで実行されている場合
+            base_path = sys._MEIPASS # PyInstallerが展開する一時ディレクトリのパス
+        else:
+            # 通常のPythonスクリプトとして実行されている場合
+            base_path = os.path.dirname(__file__)
 
-    def _load_stylesheet(self, qss_file_path):
-        """指定されたQSSファイルを読み込んでスタイルを適用する。"""
+        # QSSファイルの絶対パスを構築
+        qss_full_path = os.path.join(base_path, qss_relative_path)
+        
         try:
-            with open(qss_file_path, 'r', encoding='utf-8') as f:
+            with open(qss_full_path, 'r', encoding='utf-8') as f:
                 self.setStyleSheet(f.read())
+            print(f"DEBUG: スタイルシート '{qss_full_path}' を読み込みました。")
         except FileNotFoundError:
-            print(f"ERROR: スタイルシートファイル '{qss_file_path}' が見つかりませんでした。")
+            print(f"ERROR: スタイルシートファイル '{qss_full_path}' が見つかりませんでした。")
         except Exception as e:
             print(f"ERROR: スタイルシートの読み込み中にエラーが発生しました: {e}")
 

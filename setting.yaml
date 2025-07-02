@@ -4,14 +4,14 @@ result_window:
   border_radius: 15
   border_color: "rgba(100, 100, 100, 150)"
   border_width: 1
-  min_width: 200
-  min_height: 100
+  min_width: 600
+  min_height: 400
   translation_label:
     font_size: 14
     font_weight: "bold"
     color: "#ADD8E6"
   explanation_label:
-    font_size: 10
+    font_size: 12
     font_weight: "normal"
     color: "#C0C0C0"
   close_button:

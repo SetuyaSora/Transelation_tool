@@ -1,10 +1,12 @@
 QWidget {
     background-color: rgba(40, 40, 40, 200); /* Semi-transparent dark background */
     border-radius: 15px; /* Rounded corners */
+    min-width: 250px; /* ウィンドウの最小幅を大きく */
+    min-height: 120px; /* ウィンドウの最小高さを大きく */
 }
 QLabel {
     color: white;
-    font-size: 14pt;
+    font-size: 18pt; /* フォントサイズを大きく */
     font-weight: bold;
     font-family: Yu Gothic UI, Meiryo, sans-serif;
 }

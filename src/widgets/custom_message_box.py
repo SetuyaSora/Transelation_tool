@@ -1,5 +1,7 @@
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QMessageBox, QStyle, QApplication, QRadioButton, QButtonGroup
-from PyQt5.QtCore import Qt, QPoint, QRect, QEvent # QPoint, QRect, QEvent を追加
+from PyQt5.QtCore import Qt, QPoint, QRect, QEvent
+import os # os モジュールを追加
+import sys # sys モジュールを追加
 
 class CustomMessageBox(QDialog):
     """
@@ -113,6 +115,10 @@ class CustomMessageBox(QDialog):
         self.resize(350, 200) # モード選択分、高さを少し調整
         self.center_on_screen()
 
+        # スタイルシートは外部ファイルから読み込む
+        # 相対パスを渡す
+        self._load_stylesheet(os.path.join('..', 'styles', 'custom_message_box.qss'))
+
         # ドラッグ・リサイズ関連のフラグと位置情報
         self._resizing = False
         self._dragging = False
@@ -122,6 +128,32 @@ class CustomMessageBox(QDialog):
         self._drag_start_pos = None
 
         self.setMouseTracking(True) # マウス移動イベントを常に受け取る
+
+
+    def _load_stylesheet(self, qss_relative_path): # 引数をQSSへの相対パスに変更
+        """
+        指定されたQSSファイルを読み込んでスタイルを適用する。
+        PyInstallerでバンドルされた環境を考慮する。
+        """
+        base_path = ""
+        if getattr(sys, 'frozen', False):
+            # PyInstallerで実行されている場合
+            base_path = sys._MEIPASS # PyInstallerが展開する一時ディレクトリのパス
+        else:
+            # 通常のPythonスクリプトとして実行されている場合
+            base_path = os.path.dirname(__file__)
+
+        # QSSファイルの絶対パスを構築
+        qss_full_path = os.path.join(base_path, qss_relative_path)
+        
+        try:
+            with open(qss_full_path, 'r', encoding='utf-8') as f:
+                self.setStyleSheet(f.read())
+            print(f"DEBUG: スタイルシート '{qss_full_path}' を読み込みました。")
+        except FileNotFoundError:
+            print(f"ERROR: スタイルシートファイル '{qss_full_path}' が見つかりませんでした。")
+        except Exception as e:
+            print(f"ERROR: スタイルシートの読み込み中にエラーが発生しました: {e}")
 
 
     def _on_mode_selected(self, button):
