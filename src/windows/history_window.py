@@ -6,10 +6,10 @@ from PyQt5.QtCore import Qt, QPoint, QRect, QEvent
 from PyQt5.QtGui import QPainter, QColor, QPen
 import os
 import sys
-import logging # logging モジュールを追加
+import logging
 from src.utils.helper_functions import load_translation_history
 
-logger = logging.getLogger(__name__) # このモジュール用のロガーを取得
+logger = logging.getLogger(__name__)
 
 class HistoryWindow(QDialog):
     """
@@ -51,30 +51,36 @@ class HistoryWindow(QDialog):
         self.setLayout(main_layout)
         self.resize(500, 400)
         self.center_on_screen()
-        self._load_stylesheet(os.path.join('..', 'styles', 'history_window.qss'))
+        # スタイルシートは外部ファイルから読み込む
+        # 修正: 'styles/history_window.qss' に変更
+        self._load_stylesheet(os.path.join('styles', 'history_window.qss'))
 
         self.load_and_display_history()
 
         self._resizing = False
         self._dragging = False
-        self._resize_start_pos = None
-        self._resize_start_geometry = None
-        self._resize_edge = []
-        self._drag_start_pos = None
+        _resize_start_pos = None
+        _resize_start_geometry = None
+        _resize_edge = []
+        _drag_start_pos = None
 
         self.setMouseTracking(True)
 
-    def _load_stylesheet(self, qss_relative_path):
+    def _load_stylesheet(self, qss_relative_path): # 引数は 'styles/history_window.qss' のような形式
         """
         指定されたQSSファイルを読み込んでスタイルを適用する。
         PyInstallerでバンドルされた環境を考慮する。
         """
         base_path = ""
         if getattr(sys, 'frozen', False):
-            base_path = sys._MEIPASS
+            base_path = sys._MEIPASS # PyInstallerが展開する一時ディレクトリのパス
         else:
-            base_path = os.path.dirname(__file__)
+            # 通常のPythonスクリプトとして実行されている場合
+            # history_window.py は src/windows にあるため、styles は src/styles にある
+            # よって、os.path.dirname(__file__) (src/windows) から一つ上 (src) に行き、styles に入る
+            base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
+        # QSSファイルの絶対パスを構築
         qss_full_path = os.path.join(base_path, qss_relative_path)
         
         try:
@@ -190,7 +196,7 @@ class HistoryWindow(QDialog):
 
     def _handle_resize(self, global_pos):
         dx = global_pos.x() - self._resize_start_pos.x()
-        dy = global_pos.y() - self._resize_start_pos.y()
+        dy = global_pos.y() - global_pos.y()
 
         new_x, new_y, new_width, new_height = self._resize_start_geometry.x(), \
                                              self._resize_start_geometry.y(), \

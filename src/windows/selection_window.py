@@ -4,11 +4,12 @@ import time
 import os
 from PIL import Image
 from io import BytesIO
-import logging # logging モジュールを追加
+import logging
 
 from PyQt5.QtWidgets import QApplication, QWidget, QMessageBox
 from PyQt5.QtCore import Qt, QRect, QBuffer, QIODevice, QTimer
 from PyQt5.QtGui import QPainter, QColor, QPen
+import sys
 
 # 外部モジュールからのインポート
 from src.threads.gemini_worker import GeminiWorker
@@ -17,7 +18,7 @@ from src.widgets.loading_indicator import LoadingIndicator
 from src.config.config_manager import ConfigManager
 from src.utils.helper_functions import add_translation_entry, save_translation_history, load_translation_history
 
-logger = logging.getLogger(__name__) # このモジュール用のロガーを取得
+logger = logging.getLogger(__name__)
 
 class SelectionWindow(QWidget):
     """
@@ -97,15 +98,8 @@ class SelectionWindow(QWidget):
                             QMessageBox.Yes | QMessageBox.No,
                             current_mode=current_gemini_mode
                         )
-                        script_dir = os.path.dirname(__file__)
-                        qss_file_path = os.path.join(script_dir, '..', 'styles', 'custom_message_box.qss')
-                        try:
-                            with open(qss_file_path, 'r', encoding='utf-8') as f:
-                                dialog.setStyleSheet(f.read())
-                        except FileNotFoundError:
-                            logger.error(f"スタイルシートファイル '{qss_file_path}' が見つかりませんでした。")
-                        except Exception as e:
-                            logger.exception(f"スタイルシートの読み込み中にエラーが発生しました。")
+                        # 修正: CustomMessageBoxの_load_stylesheetを呼び出す
+                        dialog._load_stylesheet(os.path.join('styles', 'custom_message_box.qss'))
 
                         reply = dialog.exec_()
                         selected_mode = dialog.selected_mode
@@ -243,14 +237,7 @@ class SelectionWindow(QWidget):
         Uses the CustomMessageBox class.
         """
         dialog = CustomMessageBox(self, title, message, icon_type, buttons)
-        script_dir = os.path.dirname(__file__)
-        qss_file_path = os.path.join(script_dir, '..', 'styles', 'custom_message_box.qss')
-        try:
-            with open(qss_file_path, 'r', encoding='utf-8') as f:
-                dialog.setStyleSheet(f.read())
-        except FileNotFoundError:
-            logger.error(f"スタイルシートファイル '{qss_file_path}' が見つかりませんでした。")
-        except Exception as e:
-            logger.exception(f"スタイルシートの読み込み中にエラーが発生しました。")
+        # 修正: CustomMessageBoxの_load_stylesheetを呼び出す
+        dialog._load_stylesheet(os.path.join('styles', 'custom_message_box.qss'))
         return dialog.exec_()
 

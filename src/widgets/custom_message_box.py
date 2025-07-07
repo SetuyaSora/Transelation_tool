@@ -2,9 +2,9 @@ from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButt
 from PyQt5.QtCore import Qt, QPoint, QRect, QEvent
 import os
 import sys
-import logging # logging モジュールを追加
+import logging
 
-logger = logging.getLogger(__name__) # このモジュール用のロガーを取得
+logger = logging.getLogger(__name__)
 
 class CustomMessageBox(QDialog):
     """
@@ -17,7 +17,7 @@ class CustomMessageBox(QDialog):
         logger.debug("CustomMessageBox: __init__ が呼び出されました。")
         self.setWindowTitle(title)
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.Dialog | Qt.WindowStaysOnTopHint)
-        self.setModal(True) # モーダルダイアログにする
+        self.setModal(True)
 
         self.result = QMessageBox.NoButton
         self.selected_mode = current_mode
@@ -109,7 +109,8 @@ class CustomMessageBox(QDialog):
         self.resize(350, 200)
         self.center_on_screen()
 
-        self._load_stylesheet(os.path.join('..', 'styles', 'custom_message_box.qss'))
+        # 修正: __init__ からの _load_stylesheet の呼び出しを削除
+        # self._load_stylesheet(os.path.join('..', 'styles', 'custom_message_box.qss'))
 
         self._resizing = False
         self._dragging = False
@@ -121,17 +122,21 @@ class CustomMessageBox(QDialog):
         self.setMouseTracking(True)
 
 
-    def _load_stylesheet(self, qss_relative_path):
+    def _load_stylesheet(self, qss_relative_path): # 引数は 'styles/custom_message_box.qss' のような形式
         """
         指定されたQSSファイルを読み込んでスタイルを適用する。
         PyInstallerでバンドルされた環境を考慮する。
         """
         base_path = ""
         if getattr(sys, 'frozen', False):
-            base_path = sys._MEIPASS
+            base_path = sys._MEIPASS # PyInstallerが展開する一時ディレクトリのパス
         else:
-            base_path = os.path.dirname(__file__)
+            # 通常のPythonスクリプトとして実行されている場合
+            # custom_message_box.py は src/widgets にあるため、styles は src/styles にある
+            # よって、os.path.dirname(__file__) (src/widgets) から一つ上 (src) に行き、styles に入る
+            base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
+        # QSSファイルの絶対パスを構築
         qss_full_path = os.path.join(base_path, qss_relative_path)
         
         try:
@@ -280,4 +285,3 @@ class CustomMessageBox(QDialog):
         self._resizing = False
         self.setCursor(Qt.ArrowCursor)
         super().mouseReleaseEvent(event)
-

@@ -182,3 +182,219 @@
 2025-07-02 16:33:12,455 - src.utils.helper_functions - DEBUG - 翻訳履歴を 'l:\program\Transelation_tool\translation_history.json' に保存しました。
 2025-07-02 16:33:12,457 - src.windows.result_window - DEBUG - ResultWindow: show() が呼び出されました。
 2025-07-02 16:33:12,504 - src.windows.result_window - DEBUG - ResultWindow: show() が呼び出されました。
+2025-07-02 16:34:52,171 - root - INFO - ログ出力が設定されました。ログファイル: logs\app.log
+2025-07-02 16:34:52,173 - root - INFO - ログレベル: DEBUG
+2025-07-02 16:34:52,178 - src.config.config_manager - DEBUG - ConfigManager: 設定ファイル 'l:\program\Transelation_tool\setting.yaml' から設定をロードしました。
+2025-07-02 16:34:52,179 - __main__ - INFO - Gemini APIが設定されました。
+2025-07-02 16:34:52,180 - __main__ - INFO - メインスクリプト開始。
+2025-07-02 16:34:52,219 - __main__ - INFO - アプリケーションアイコンを 'l:\program\Transelation_tool\app_icon.ico' に設定しました。
+2025-07-02 16:34:52,220 - __main__ - INFO - QApplicationインスタンスを作成しました。
+2025-07-02 16:34:52,221 - src.windows.result_window - DEBUG - ResultWindow: __init__ が呼び出されました。
+2025-07-02 16:34:52,222 - src.windows.result_window - DEBUG - スタイルシート 'l:\program\Transelation_tool\src\windows\..\styles\result_window.qss' を読み込みました。
+2025-07-02 16:34:52,440 - src.windows.result_window - DEBUG - ResultWindow: hide() が呼び出されました。
+2025-07-02 16:34:52,441 - src.windows.result_window - DEBUG - ResultWindow: hide() が呼び出されました。
+2025-07-02 16:34:52,441 - __main__ - INFO - ResultWindowインスタンスを作成し、非表示にしました。
+2025-07-02 16:34:52,441 - src.windows.history_window - DEBUG - HistoryWindow: __init__ が呼び出されました。
+2025-07-02 16:34:52,443 - src.windows.history_window - DEBUG - スタイルシート 'l:\program\Transelation_tool\src\windows\..\styles\history_window.qss' を読み込みました。
+2025-07-02 16:34:52,443 - src.utils.helper_functions - DEBUG - 翻訳履歴を 'l:\program\Transelation_tool\translation_history.json' から読み込みました。
+2025-07-02 16:34:52,444 - src.windows.history_window - DEBUG - HistoryWindow: hide() が呼び出されました。
+2025-07-02 16:34:52,444 - __main__ - INFO - HistoryWindowインスタンスを作成し、非表示にしました。
+2025-07-02 16:34:52,444 - src.windows.settings_window - DEBUG - SettingsWindow: __init__ が呼び出されました。
+2025-07-02 16:34:52,445 - src.windows.settings_window - DEBUG - スタイルシート 'l:\program\Transelation_tool\src\windows\..\styles\settings_window.qss' を読み込みました。
+2025-07-02 16:34:52,445 - src.windows.settings_window - DEBUG - SettingsWindow: hide() が呼び出されました。
+2025-07-02 16:34:52,445 - __main__ - INFO - SettingsWindowインスタンスを作成し、非表示にしました。
+2025-07-02 16:34:52,446 - src.windows.selection_window - DEBUG - SelectionWindow: __init__ が呼び出されました。
+2025-07-02 16:34:52,446 - src.windows.selection_window - DEBUG - SelectionWindow: 画面サイズを 1920x1200 に設定しました。
+2025-07-02 16:34:52,446 - src.widgets.loading_indicator - DEBUG - LoadingIndicator: __init__ が呼び出されました。
+2025-07-02 16:34:52,447 - src.widgets.loading_indicator - DEBUG - スタイルシート 'l:\program\Transelation_tool\src\widgets\..\styles\loading_indicator.qss' を読み込みました。
+2025-07-02 16:34:52,447 - src.windows.selection_window - DEBUG - SelectionWindow: 初期化完了。
+2025-07-02 16:34:52,447 - __main__ - INFO - SelectionWindowインスタンスを作成し、非表示にしました。
+2025-07-02 16:34:52,460 - __main__ - INFO - システムトレイアイコンが作成され、表示されました。
+2025-07-02 16:34:52,467 - src.utils.helper_functions - INFO - グローバルホットキーリスナーを開始しました。ホットキー: Alt r
+2025-07-02 16:34:52,467 - __main__ - INFO - ショートカットキー（現在の設定: Alt r）を監視中です...
+2025-07-02 16:34:52,467 - __main__ - INFO - Ctrl+Cでプログラムを終了できます。
+2025-07-02 16:34:58,905 - src.utils.helper_functions - DEBUG - グローバルホットキー (Alt r) が押されました。
+2025-07-02 16:34:58,906 - __main__ - DEBUG - ホットキー検出！範囲選択を開始します。
+2025-07-02 16:35:00,895 - src.windows.selection_window - DEBUG - mouseReleaseEvent: ウィンドウを非表示にしました。
+2025-07-02 16:35:00,896 - src.windows.selection_window - DEBUG - take_selected_screenshot: スクリーンショット範囲 (180,472,970,339)
+2025-07-02 16:35:01,040 - src.windows.selection_window - DEBUG - スクリーンショットをファイルに保存しました: screenshots\screenshot_20250702-163501.png
+2025-07-02 16:35:01,050 - src.windows.selection_window - DEBUG - スクリーンショットをメモリに取得しました。
+2025-07-02 16:35:01,050 - src.windows.selection_window - DEBUG - OCRスキップ: setting.yamlでtesseract_pathが指定されていません。
+2025-07-02 16:35:01,051 - src.windows.selection_window - DEBUG - OCRでテキストが抽出できませんでした。
+2025-07-02 16:35:01,051 - src.widgets.custom_message_box - DEBUG - CustomMessageBox: __init__ が呼び出されました。
+2025-07-02 16:35:01,075 - src.widgets.custom_message_box - DEBUG - スタイルシート 'l:\program\Transelation_tool\src\widgets\..\styles\custom_message_box.qss' を読み込みました。
+2025-07-02 16:35:02,406 - src.windows.selection_window - DEBUG - API送信が承認されました。選択されたモード: translation
+2025-07-02 16:35:02,428 - src.config.config_manager - DEBUG - ConfigManager: 設定 'gemini_settings.mode' を 'translation' に更新しました。
+2025-07-02 16:35:02,430 - src.threads.gemini_worker - DEBUG - GeminiWorker: API処理を開始します。
+2025-07-02 16:35:02,430 - src.threads.gemini_worker - DEBUG - GeminiWorker: 翻訳モードでプロンプトを構築します。
+2025-07-02 16:35:02,430 - src.threads.gemini_worker - DEBUG - GeminiWorker: OCRテキストが空か、エラーメッセージのため、プロンプトには含めません。
+2025-07-02 16:35:02,431 - src.threads.gemini_worker - DEBUG - GeminiWorker: Gemini APIへリクエスト送信中...
+2025-07-02 16:35:05,493 - src.threads.gemini_worker - DEBUG - GeminiWorker: Gemini APIからの応答を受信しました。
+2025-07-02 16:35:05,494 - src.threads.gemini_worker - DEBUG - GeminiWorker: 最終プロンプトの一部: この画像は英語で表示されたゲーム画面です。含まれる全ての英語テキストを日本語に翻訳してください。
+ただし、ゲーム内の固有名詞（船、アイテム、勢力、地名、キャラクター名など）は翻訳せずに、元の英語を保ってもかまいません。
+また、ゲーム用語や略語（例: "HP", "MP", "EXP" など）も一般的に知名度が高ければ翻訳せずに表記してかまいません。
+一般的な英単語でも、文脈からゲーム用語である可能...
+2025-07-02 16:35:05,494 - src.threads.gemini_worker - DEBUG - GeminiWorker: 翻訳結果 (mode=translation): バーバラ・デ・アンジェリス
+「愛することで失うものはない。ためらって愛を差し伸べないことで、いつもあ...
+2025-07-02 16:35:05,494 - src.threads.gemini_worker - DEBUG - GeminiWorker: 解説 (mode=translation): - "You never lose by loving.": 「愛することで失うものはない。」と訳し...
+2025-07-02 16:35:05,502 - src.utils.helper_functions - DEBUG - 翻訳履歴を 'l:\program\Transelation_tool\translation_history.json' から読み込みました。
+2025-07-02 16:35:05,502 - src.utils.helper_functions - DEBUG - 新しい翻訳エントリを履歴に追加しました。
+2025-07-02 16:35:05,515 - src.utils.helper_functions - DEBUG - 翻訳履歴を 'l:\program\Transelation_tool\translation_history.json' に保存しました。
+2025-07-02 16:35:05,518 - src.windows.result_window - DEBUG - ResultWindow: show() が呼び出されました。
+2025-07-02 16:35:05,562 - src.windows.result_window - DEBUG - ResultWindow: show() が呼び出されました。
+2025-07-02 16:35:34,570 - src.windows.result_window - INFO - 翻訳結果と解説をクリップボードにコピーしました。
+2025-07-02 16:35:50,924 - src.windows.result_window - DEBUG - ResultWindow: closeEvent() が呼び出されました。
+2025-07-02 16:35:50,924 - src.windows.result_window - DEBUG - ResultWindow: hide() が呼び出されました。
+2025-07-02 16:35:50,937 - src.windows.result_window - INFO - ResultWindowをシステムトレイに隠しました。
+2025-07-08 00:00:42,833 - root - INFO - ログ出力が設定されました。ログファイル: logs\app.log
+2025-07-08 00:00:42,844 - root - INFO - ログレベル: DEBUG
+2025-07-08 00:00:42,847 - src.config.config_manager - DEBUG - ConfigManager: 設定ファイル 'l:\program\Transelation_tool\setting.yaml' から設定をロードしました。
+2025-07-08 00:00:42,847 - __main__ - INFO - Gemini APIが設定されました。
+2025-07-08 00:00:42,847 - __main__ - INFO - メインスクリプト開始。
+2025-07-08 00:00:42,870 - __main__ - INFO - アプリケーションアイコンを 'l:\program\Transelation_tool\app_icon.ico' に設定しました。
+2025-07-08 00:00:42,871 - __main__ - INFO - QApplicationインスタンスを作成しました。
+2025-07-08 00:00:42,871 - src.windows.result_window - DEBUG - ResultWindow: __init__ が呼び出されました。
+2025-07-08 00:00:42,873 - src.windows.result_window - DEBUG - スタイルシート 'l:\program\Transelation_tool\src\windows\..\styles\result_window.qss' を読み込みました。
+2025-07-08 00:00:42,891 - src.windows.result_window - DEBUG - ResultWindow: hide() が呼び出されました。
+2025-07-08 00:00:42,891 - src.windows.result_window - DEBUG - ResultWindow: hide() が呼び出されました。
+2025-07-08 00:00:42,891 - __main__ - INFO - ResultWindowインスタンスを作成し、非表示にしました。
+2025-07-08 00:00:42,891 - src.windows.history_window - DEBUG - HistoryWindow: __init__ が呼び出されました。
+2025-07-08 00:00:42,893 - src.windows.history_window - DEBUG - スタイルシート 'l:\program\Transelation_tool\src\windows\..\styles\history_window.qss' を読み込みました。
+2025-07-08 00:00:42,893 - src.utils.helper_functions - DEBUG - 翻訳履歴を 'l:\program\Transelation_tool\translation_history.json' から読み込みました。
+2025-07-08 00:00:42,894 - src.windows.history_window - DEBUG - HistoryWindow: hide() が呼び出されました。
+2025-07-08 00:00:42,894 - __main__ - INFO - HistoryWindowインスタンスを作成し、非表示にしました。
+2025-07-08 00:00:42,894 - src.windows.settings_window - DEBUG - SettingsWindow: __init__ が呼び出されました。
+2025-07-08 00:00:42,895 - src.windows.settings_window - DEBUG - スタイルシート 'l:\program\Transelation_tool\src\windows\..\styles\settings_window.qss' を読み込みました。
+2025-07-08 00:00:42,895 - src.windows.settings_window - DEBUG - SettingsWindow: hide() が呼び出されました。
+2025-07-08 00:00:42,895 - __main__ - INFO - SettingsWindowインスタンスを作成し、非表示にしました。
+2025-07-08 00:00:42,895 - src.windows.selection_window - DEBUG - SelectionWindow: __init__ が呼び出されました。
+2025-07-08 00:00:42,895 - src.windows.selection_window - DEBUG - SelectionWindow: 画面サイズを 1920x1080 に設定しました。
+2025-07-08 00:00:42,895 - src.widgets.loading_indicator - DEBUG - LoadingIndicator: __init__ が呼び出されました。
+2025-07-08 00:00:42,896 - src.widgets.loading_indicator - DEBUG - スタイルシート 'l:\program\Transelation_tool\src\widgets\..\styles\loading_indicator.qss' を読み込みました。
+2025-07-08 00:00:42,896 - src.windows.selection_window - DEBUG - SelectionWindow: 初期化完了。
+2025-07-08 00:00:42,896 - __main__ - INFO - SelectionWindowインスタンスを作成し、非表示にしました。
+2025-07-08 00:00:42,909 - __main__ - INFO - システムトレイアイコンが作成され、表示されました。
+2025-07-08 00:00:42,918 - src.utils.helper_functions - INFO - グローバルホットキーリスナーを開始しました。ホットキー: Alt r
+2025-07-08 00:00:42,918 - __main__ - INFO - ショートカットキー（現在の設定: Alt r）を監視中です...
+2025-07-08 00:00:42,918 - __main__ - INFO - Ctrl+Cでプログラムを終了できます。
+2025-07-08 00:00:44,122 - src.utils.helper_functions - DEBUG - グローバルホットキー (Alt r) が押されました。
+2025-07-08 00:00:44,122 - __main__ - DEBUG - ホットキー検出！範囲選択を開始します。
+2025-07-08 00:00:44,853 - src.windows.selection_window - DEBUG - mouseReleaseEvent: ウィンドウを非表示にしました。
+2025-07-08 00:00:44,854 - src.windows.selection_window - DEBUG - take_selected_screenshot: スクリーンショット範囲 (840,614,158,67)
+2025-07-08 00:00:44,935 - src.windows.selection_window - DEBUG - スクリーンショットをファイルに保存しました: screenshots\screenshot_20250708-000044.png
+2025-07-08 00:00:44,937 - src.windows.selection_window - DEBUG - スクリーンショットをメモリに取得しました。
+2025-07-08 00:00:44,938 - src.windows.selection_window - DEBUG - OCRスキップ: setting.yamlでtesseract_pathが指定されていません。
+2025-07-08 00:00:44,938 - src.windows.selection_window - DEBUG - OCRでテキストが抽出できませんでした。
+2025-07-08 00:00:44,938 - src.widgets.custom_message_box - DEBUG - CustomMessageBox: __init__ が呼び出されました。
+2025-07-08 00:00:44,958 - src.widgets.custom_message_box - ERROR - スタイルシートファイル 'l:\program\Transelation_tool\styles\custom_message_box.qss' が見つかりませんでした。
+2025-07-08 00:00:44,959 - src.windows.selection_window - ERROR - スタイルシートファイル 'l:\program\Transelation_tool\styles\custom_message_box.qss' が見つかりませんでした。
+2025-07-08 00:02:22,277 - src.windows.selection_window - DEBUG - API送信がキャンセルされました。
+2025-07-08 00:04:43,322 - root - INFO - ログ出力が設定されました。ログファイル: logs\app.log
+2025-07-08 00:04:43,322 - root - INFO - ログレベル: DEBUG
+2025-07-08 00:04:43,325 - src.config.config_manager - DEBUG - ConfigManager: 設定ファイル 'l:\program\Transelation_tool\setting.yaml' から設定をロードしました。
+2025-07-08 00:04:43,325 - __main__ - INFO - Gemini APIが設定されました。
+2025-07-08 00:04:43,325 - __main__ - INFO - メインスクリプト開始。
+2025-07-08 00:04:43,347 - __main__ - INFO - アプリケーションアイコンを 'l:\program\Transelation_tool\app_icon.ico' に設定しました。
+2025-07-08 00:04:43,347 - __main__ - INFO - QApplicationインスタンスを作成しました。
+2025-07-08 00:04:43,347 - src.windows.result_window - DEBUG - ResultWindow: __init__ が呼び出されました。
+2025-07-08 00:04:43,349 - src.windows.result_window - DEBUG - スタイルシート 'l:\program\Transelation_tool\src\styles\result_window.qss' を読み込みました。
+2025-07-08 00:04:43,367 - src.windows.result_window - DEBUG - ResultWindow: hide() が呼び出されました。
+2025-07-08 00:04:43,367 - src.windows.result_window - DEBUG - ResultWindow: hide() が呼び出されました。
+2025-07-08 00:04:43,367 - __main__ - INFO - ResultWindowインスタンスを作成し、非表示にしました。
+2025-07-08 00:04:43,368 - src.windows.history_window - DEBUG - HistoryWindow: __init__ が呼び出されました。
+2025-07-08 00:04:43,369 - src.windows.history_window - DEBUG - スタイルシート 'l:\program\Transelation_tool\src\styles\history_window.qss' を読み込みました。
+2025-07-08 00:04:43,370 - src.utils.helper_functions - DEBUG - 翻訳履歴を 'l:\program\Transelation_tool\translation_history.json' から読み込みました。
+2025-07-08 00:04:43,370 - src.windows.history_window - DEBUG - HistoryWindow: hide() が呼び出されました。
+2025-07-08 00:04:43,371 - __main__ - INFO - HistoryWindowインスタンスを作成し、非表示にしました。
+2025-07-08 00:04:43,371 - src.windows.settings_window - DEBUG - SettingsWindow: __init__ が呼び出されました。
+2025-07-08 00:04:43,371 - src.windows.settings_window - DEBUG - スタイルシート 'l:\program\Transelation_tool\src\styles\settings_window.qss' を読み込みました。
+2025-07-08 00:04:43,372 - src.windows.settings_window - DEBUG - SettingsWindow: hide() が呼び出されました。
+2025-07-08 00:04:43,372 - __main__ - INFO - SettingsWindowインスタンスを作成し、非表示にしました。
+2025-07-08 00:04:43,372 - src.windows.selection_window - DEBUG - SelectionWindow: __init__ が呼び出されました。
+2025-07-08 00:04:43,372 - src.windows.selection_window - DEBUG - SelectionWindow: 画面サイズを 1920x1080 に設定しました。
+2025-07-08 00:04:43,373 - src.widgets.loading_indicator - DEBUG - LoadingIndicator: __init__ が呼び出されました。
+2025-07-08 00:04:43,373 - src.widgets.loading_indicator - DEBUG - スタイルシート 'l:\program\Transelation_tool\src\styles\loading_indicator.qss' を読み込みました。
+2025-07-08 00:04:43,373 - src.windows.selection_window - DEBUG - SelectionWindow: 初期化完了。
+2025-07-08 00:04:43,373 - __main__ - INFO - SelectionWindowインスタンスを作成し、非表示にしました。
+2025-07-08 00:04:43,385 - __main__ - INFO - システムトレイアイコンが作成され、表示されました。
+2025-07-08 00:04:43,393 - src.utils.helper_functions - INFO - グローバルホットキーリスナーを開始しました。ホットキー: Alt r
+2025-07-08 00:04:43,394 - __main__ - INFO - ショートカットキー（現在の設定: Alt r）を監視中です...
+2025-07-08 00:04:43,394 - __main__ - INFO - Ctrl+Cでプログラムを終了できます。
+2025-07-08 00:04:44,906 - src.utils.helper_functions - DEBUG - グローバルホットキー (Alt r) が押されました。
+2025-07-08 00:04:44,907 - __main__ - DEBUG - ホットキー検出！範囲選択を開始します。
+2025-07-08 00:04:45,562 - src.windows.selection_window - DEBUG - mouseReleaseEvent: ウィンドウを非表示にしました。
+2025-07-08 00:04:45,563 - src.windows.selection_window - DEBUG - take_selected_screenshot: スクリーンショット範囲 (634,354,270,234)
+2025-07-08 00:04:45,624 - src.windows.selection_window - DEBUG - スクリーンショットをファイルに保存しました: screenshots\screenshot_20250708-000445.png
+2025-07-08 00:04:45,628 - src.windows.selection_window - DEBUG - スクリーンショットをメモリに取得しました。
+2025-07-08 00:04:45,628 - src.windows.selection_window - DEBUG - OCRスキップ: setting.yamlでtesseract_pathが指定されていません。
+2025-07-08 00:04:45,628 - src.windows.selection_window - DEBUG - OCRでテキストが抽出できませんでした。
+2025-07-08 00:04:45,628 - src.widgets.custom_message_box - DEBUG - CustomMessageBox: __init__ が呼び出されました。
+2025-07-08 00:04:45,656 - src.widgets.custom_message_box - DEBUG - スタイルシート 'l:\program\Transelation_tool\src\styles\custom_message_box.qss' を読み込みました。
+2025-07-08 00:04:47,404 - src.windows.selection_window - DEBUG - API送信がキャンセルされました。
+2025-07-08 00:04:56,761 - src.utils.helper_functions - DEBUG - グローバルホットキー (Alt r) が押されました。
+2025-07-08 00:04:56,762 - __main__ - DEBUG - ホットキー検出！範囲選択を開始します。
+2025-07-08 00:04:58,003 - src.windows.selection_window - DEBUG - Escキーが押されました。選択をキャンセルします。
+2025-07-08 00:05:02,826 - src.utils.helper_functions - DEBUG - グローバルホットキー (Alt r) が押されました。
+2025-07-08 00:05:02,827 - __main__ - DEBUG - ホットキー検出！範囲選択を開始します。
+2025-07-08 00:05:04,671 - src.windows.selection_window - DEBUG - mouseReleaseEvent: ウィンドウを非表示にしました。
+2025-07-08 00:05:04,672 - src.windows.selection_window - DEBUG - take_selected_screenshot: スクリーンショット範囲 (651,414,599,217)
+2025-07-08 00:05:04,694 - src.windows.selection_window - DEBUG - スクリーンショットをファイルに保存しました: screenshots\screenshot_20250708-000504.png
+2025-07-08 00:05:04,698 - src.windows.selection_window - DEBUG - スクリーンショットをメモリに取得しました。
+2025-07-08 00:05:04,699 - src.windows.selection_window - DEBUG - OCRスキップ: setting.yamlでtesseract_pathが指定されていません。
+2025-07-08 00:05:04,699 - src.windows.selection_window - DEBUG - OCRでテキストが抽出できませんでした。
+2025-07-08 00:05:04,699 - src.widgets.custom_message_box - DEBUG - CustomMessageBox: __init__ が呼び出されました。
+2025-07-08 00:05:04,701 - src.widgets.custom_message_box - DEBUG - スタイルシート 'l:\program\Transelation_tool\src\styles\custom_message_box.qss' を読み込みました。
+2025-07-08 00:05:05,800 - src.windows.selection_window - DEBUG - API送信が承認されました。選択されたモード: translation
+2025-07-08 00:05:05,813 - src.config.config_manager - DEBUG - ConfigManager: 設定 'gemini_settings.mode' を 'translation' に更新しました。
+2025-07-08 00:05:05,815 - src.threads.gemini_worker - DEBUG - GeminiWorker: API処理を開始します。
+2025-07-08 00:05:05,816 - src.threads.gemini_worker - DEBUG - GeminiWorker: 翻訳モードでプロンプトを構築します。
+2025-07-08 00:05:05,816 - src.threads.gemini_worker - DEBUG - GeminiWorker: OCRテキストが空か、エラーメッセージのため、プロンプトには含めません。
+2025-07-08 00:05:05,817 - src.threads.gemini_worker - DEBUG - GeminiWorker: Gemini APIへリクエスト送信中...
+2025-07-08 00:05:09,153 - src.threads.gemini_worker - DEBUG - GeminiWorker: Gemini APIからの応答を受信しました。
+2025-07-08 00:05:09,153 - src.threads.gemini_worker - DEBUG - GeminiWorker: 最終プロンプトの一部: この画像は英語で表示されたゲーム画面です。含まれる全ての英語テキストを日本語に翻訳してください。
+ただし、ゲーム内の固有名詞（船、アイテム、勢力、地名、キャラクター名など）は翻訳せずに、元の英語を保ってもかまいません。
+また、ゲーム用語や略語（例: "HP", "MP", "EXP" など）も一般的に知名度が高ければ翻訳せずに表記してかまいません。
+一般的な英単語でも、文脈からゲーム用語である可能...
+2025-07-08 00:05:09,154 - src.threads.gemini_worker - DEBUG - GeminiWorker: 翻訳結果 (mode=translation): オーストラリアに住んでいた頃、料理をたくさん実験していました。請求書を払った後はお金があまり残らない...
+2025-07-08 00:05:09,154 - src.threads.gemini_worker - DEBUG - GeminiWorker: 解説 (mode=translation): - "An Aussie cooking in Japan": タイトルです。「オーストラリア人が日...
+2025-07-08 00:05:09,160 - src.utils.helper_functions - DEBUG - 翻訳履歴を 'l:\program\Transelation_tool\translation_history.json' から読み込みました。
+2025-07-08 00:05:09,160 - src.utils.helper_functions - DEBUG - 新しい翻訳エントリを履歴に追加しました。
+2025-07-08 00:05:09,172 - src.utils.helper_functions - DEBUG - 翻訳履歴を 'l:\program\Transelation_tool\translation_history.json' に保存しました。
+2025-07-08 00:05:09,173 - src.windows.result_window - DEBUG - ResultWindow: show() が呼び出されました。
+2025-07-08 00:05:09,196 - src.windows.result_window - DEBUG - ResultWindow: show() が呼び出されました。
+2025-07-08 00:05:24,790 - src.windows.result_window - DEBUG - ResultWindow: closeEvent() が呼び出されました。
+2025-07-08 00:05:24,790 - src.windows.result_window - DEBUG - ResultWindow: hide() が呼び出されました。
+2025-07-08 00:05:24,795 - src.windows.result_window - INFO - ResultWindowをシステムトレイに隠しました。
+2025-07-08 00:15:07,722 - src.utils.helper_functions - DEBUG - グローバルホットキー (Alt r) が押されました。
+2025-07-08 00:15:07,723 - __main__ - DEBUG - ホットキー検出！範囲選択を開始します。
+2025-07-08 00:15:11,352 - src.windows.selection_window - DEBUG - mouseReleaseEvent: ウィンドウを非表示にしました。
+2025-07-08 00:15:11,352 - src.windows.selection_window - DEBUG - take_selected_screenshot: スクリーンショット範囲 (650,378,603,220)
+2025-07-08 00:15:11,380 - src.windows.selection_window - DEBUG - スクリーンショットをファイルに保存しました: screenshots\screenshot_20250708-001511.png
+2025-07-08 00:15:11,385 - src.windows.selection_window - DEBUG - スクリーンショットをメモリに取得しました。
+2025-07-08 00:15:11,386 - src.windows.selection_window - DEBUG - OCRスキップ: setting.yamlでtesseract_pathが指定されていません。
+2025-07-08 00:15:11,386 - src.windows.selection_window - DEBUG - OCRでテキストが抽出できませんでした。
+2025-07-08 00:15:11,386 - src.widgets.custom_message_box - DEBUG - CustomMessageBox: __init__ が呼び出されました。
+2025-07-08 00:15:11,388 - src.widgets.custom_message_box - DEBUG - スタイルシート 'l:\program\Transelation_tool\src\styles\custom_message_box.qss' を読み込みました。
+2025-07-08 00:15:12,767 - src.windows.selection_window - DEBUG - API送信が承認されました。選択されたモード: translation
+2025-07-08 00:15:12,773 - src.config.config_manager - DEBUG - ConfigManager: 設定 'gemini_settings.mode' を 'translation' に更新しました。
+2025-07-08 00:15:12,775 - src.threads.gemini_worker - DEBUG - GeminiWorker: API処理を開始します。
+2025-07-08 00:15:12,775 - src.threads.gemini_worker - DEBUG - GeminiWorker: 翻訳モードでプロンプトを構築します。
+2025-07-08 00:15:12,775 - src.threads.gemini_worker - DEBUG - GeminiWorker: OCRテキストが空か、エラーメッセージのため、プロンプトには含めません。
+2025-07-08 00:15:12,775 - src.threads.gemini_worker - DEBUG - GeminiWorker: Gemini APIへリクエスト送信中...
+2025-07-08 00:15:15,328 - src.threads.gemini_worker - DEBUG - GeminiWorker: Gemini APIからの応答を受信しました。
+2025-07-08 00:15:15,329 - src.threads.gemini_worker - DEBUG - GeminiWorker: 最終プロンプトの一部: この画像は英語で表示されたゲーム画面です。含まれる全ての英語テキストを日本語に翻訳してください。
+ただし、ゲーム内の固有名詞（船、アイテム、勢力、地名、キャラクター名など）は翻訳せずに、元の英語を保ってもかまいません。
+また、ゲーム用語や略語（例: "HP", "MP", "EXP" など）も一般的に知名度が高ければ翻訳せずに表記してかまいません。
+一般的な英単語でも、文脈からゲーム用語である可能...
+2025-07-08 00:15:15,329 - src.threads.gemini_worker - DEBUG - GeminiWorker: 翻訳結果 (mode=translation): オーストラリアに住んでいた頃、私はよく料理の実験をしていました。家賃などを払った後はお金があまり残ら...
+2025-07-08 00:15:15,329 - src.threads.gemini_worker - DEBUG - GeminiWorker: 解説 (mode=translation): - **An Aussie:** オーストラリア人
+- **experiment a lot wit...
+2025-07-08 00:15:15,334 - src.utils.helper_functions - DEBUG - 翻訳履歴を 'l:\program\Transelation_tool\translation_history.json' から読み込みました。
+2025-07-08 00:15:15,335 - src.utils.helper_functions - DEBUG - 新しい翻訳エントリを履歴に追加しました。
+2025-07-08 00:15:15,347 - src.utils.helper_functions - DEBUG - 翻訳履歴を 'l:\program\Transelation_tool\translation_history.json' に保存しました。
+2025-07-08 00:15:15,349 - src.windows.result_window - DEBUG - ResultWindow: show() が呼び出されました。
+2025-07-08 00:15:15,353 - src.windows.result_window - DEBUG - ResultWindow: show() が呼び出されました。
+2025-07-08 00:15:24,766 - src.windows.result_window - INFO - 翻訳結果と解説をクリップボードにコピーしました。
+2025-07-08 00:15:46,737 - src.windows.result_window - DEBUG - ResultWindow: closeEvent() が呼び出されました。
+2025-07-08 00:15:46,738 - src.windows.result_window - DEBUG - ResultWindow: hide() が呼び出されました。
+2025-07-08 00:15:46,742 - src.windows.result_window - INFO - ResultWindowをシステムトレイに隠しました。

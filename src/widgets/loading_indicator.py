@@ -2,10 +2,9 @@ from PyQt5.QtWidgets import QWidget, QLabel, QVBoxLayout, QApplication
 from PyQt5.QtCore import Qt
 import os
 import sys
-import logging # logging モジュールを追加
-# from PyQt5.QtGui import QMovie # GIFアニメーションを使う場合に必要
+import logging
 
-logger = logging.getLogger(__name__) # このモジュール用のロガーを取得
+logger = logging.getLogger(__name__)
 
 class LoadingIndicator(QWidget):
     """
@@ -15,7 +14,7 @@ class LoadingIndicator(QWidget):
         super().__init__(parent)
         logger.debug("LoadingIndicator: __init__ が呼び出されました。")
         self.setWindowFlags(Qt.SplashScreen | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
-        self.setAttribute(Qt.WA_TranslucentBackground) # 背景を透過させる
+        self.setAttribute(Qt.WA_TranslucentBackground)
 
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(20, 20, 20, 20)
@@ -26,23 +25,28 @@ class LoadingIndicator(QWidget):
         self.message_label.setAlignment(Qt.AlignCenter)
         main_layout.addWidget(self.message_label)
         
-        # Simple pulsating animation (can be replaced with GIF if available)
         self.setFixedSize(200, 100)
-        self._load_stylesheet(os.path.join('..', 'styles', 'loading_indicator.qss'))
+        # スタイルシートは外部ファイルから読み込む
+        # 修正: 'styles/loading_indicator.qss' に変更
+        self._load_stylesheet(os.path.join('styles', 'loading_indicator.qss'))
 
         self.center_on_screen()
 
-    def _load_stylesheet(self, qss_relative_path):
+    def _load_stylesheet(self, qss_relative_path): # 引数は 'styles/loading_indicator.qss' のような形式
         """
         指定されたQSSファイルを読み込んでスタイルを適用する。
         PyInstallerでバンドルされた環境を考慮する。
         """
         base_path = ""
         if getattr(sys, 'frozen', False):
-            base_path = sys._MEIPASS
+            base_path = sys._MEIPASS # PyInstallerが展開する一時ディレクトリのパス
         else:
-            base_path = os.path.dirname(__file__)
+            # 通常のPythonスクリプトとして実行されている場合
+            # loading_indicator.py は src/widgets にあるため、styles は src/styles にある
+            # よって、os.path.dirname(__file__) (src/widgets) から一つ上 (src) に行き、styles に入る
+            base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
+        # QSSファイルの絶対パスを構築
         qss_full_path = os.path.join(base_path, qss_relative_path)
         
         try:
@@ -64,4 +68,3 @@ class LoadingIndicator(QWidget):
         super().show()
         self.raise_()
         self.activateWindow()
-

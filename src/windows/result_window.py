@@ -32,7 +32,9 @@ class ResultWindow(QWidget):
         self.setMinimumSize(min_width, min_height)
         self.setGeometry(100, 100, min_width, min_height)
 
-        self._load_stylesheet(os.path.join('..', 'styles', 'result_window.qss'))
+        # スタイルシートは外部ファイルから読み込む
+        # 修正: 'styles/result_window.qss' に変更
+        self._load_stylesheet(os.path.join('styles', 'result_window.qss'))
 
         header_layout = QHBoxLayout()
         header_layout.setContentsMargins(5, 5, 5, 5)
@@ -111,25 +113,31 @@ class ResultWindow(QWidget):
         
         self.hide()
 
-        # --- ドラッグ・リサイズ関連のフラグと位置情報の初期化を追加 ---
         self._resizing = False
         self._dragging = False
         self._resize_start_pos = None
         self._resize_start_geometry = None
         self._resize_edge = []
         self._drag_start_pos = None
-        # --- 初期化ここまで ---
 
         self.setMouseTracking(True)
 
-    def _load_stylesheet(self, qss_relative_path):
-        """指定されたQSSファイルを読み込んでスタイルを適用する。"""
+    def _load_stylesheet(self, qss_relative_path): # 引数は 'styles/result_window.qss' のような形式
+        """
+        指定されたQSSファイルを読み込んでスタイルを適用する。
+        PyInstallerでバンドルされた環境を考慮する。
+        """
         base_path = ""
         if getattr(sys, 'frozen', False):
-            base_path = sys._MEIPASS
+            base_path = sys._MEIPASS # PyInstallerが展開する一時ディレクトリのパス
         else:
-            base_path = os.path.dirname(__file__)
+            # 通常のPythonスクリプトとして実行されている場合
+            # result_window.py は src/windows にあるため、styles は src/styles にある
+            # よって、os.path.dirname(__file__) (src/windows) から一つ上 (src) に行き、styles に入る
+            base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
+        # QSSファイルの絶対パスを構築
+        # qss_relative_path は 'styles/result_window.qss' のような形式
         qss_full_path = os.path.join(base_path, qss_relative_path)
         
         try:
@@ -203,7 +211,6 @@ class ResultWindow(QWidget):
     _border_width = 8
 
     def _is_at_border(self, pos):
-        """マウスカーソルがウィンドウの境界線付近にあるか判定する。"""
         x, y = pos.x(), pos.y()
         w, h = self.width(), self.height()
         border = self._border_width
@@ -216,7 +223,6 @@ class ResultWindow(QWidget):
         return at_left or at_right or at_top or at_bottom
 
     def _get_cursor_shape(self, pos):
-        """マウスカーソルの位置に応じてカーソル形状を決定する。"""
         x, y = pos.x(), pos.y()
         w, h = self.width(), self.height()
         border = self._border_width
@@ -236,7 +242,6 @@ class ResultWindow(QWidget):
         return Qt.ArrowCursor
 
     def _get_resize_edge(self, pos):
-        """リサイズする境界線の方向をリストで返す。"""
         x, y = pos.x(), pos.y()
         w, h = self.width(), self.height()
         border = self._border_width
@@ -249,7 +254,6 @@ class ResultWindow(QWidget):
         return edge
 
     def _handle_resize(self, global_pos):
-        """ウィンドウのリサイズ処理を行う。"""
         dx = global_pos.x() - self._resize_start_pos.x()
         dy = global_pos.y() - self._resize_start_pos.y()
 
@@ -319,3 +323,4 @@ class ResultWindow(QWidget):
         self._resizing = False
         self.setCursor(Qt.ArrowCursor)
         super().mouseReleaseEvent(event)
+
