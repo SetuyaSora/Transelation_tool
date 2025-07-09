@@ -2,10 +2,11 @@ import sys
 import os
 from dotenv import load_dotenv
 import google.generativeai as genai
-from PyQt5.QtWidgets import QApplication, QMessageBox, QSystemTrayIcon, QMenu, QAction # QSystemTrayIcon, QMenu, QAction を追加
-from PyQt5.QtCore import QTimer, Qt # Qt を追加
-from PyQt5.QtGui import QIcon # QIcon を追加
+from PyQt5.QtWidgets import QApplication, QMessageBox, QSystemTrayIcon, QMenu, QAction, QStyle # QStyle を追加
+from PyQt5.QtCore import QTimer, Qt
+from PyQt5.QtGui import QIcon
 import logging
+import json
 
 # 分割したモジュールをインポート
 from src.config.config_manager import ConfigManager
@@ -22,11 +23,17 @@ configure_logging(log_dir="logs", log_file_name="app.log", log_level=logging.DEB
 logger = logging.getLogger(__name__)
 
 # --- 定数の定義 ---
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-SETTINGS_FILE = os.path.join(SCRIPT_DIR, "setting.yaml")
-HISTORY_FILE = os.path.join(SCRIPT_DIR, "translation_history.json")
-OUTPUT_FOLDER = "screenshots"
-APP_ICON_PATH = os.path.join(SCRIPT_DIR, "app_icon.ico") # アイコンファイルのパス
+# アプリケーションのベースディレクトリを決定
+if getattr(sys, 'frozen', False):
+    APP_BASE_DIR = os.path.dirname(sys.executable)
+else:
+    APP_BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+SETTINGS_FILE = os.path.join(APP_BASE_DIR, "setting.yaml")
+HISTORY_FILE = os.path.join(APP_BASE_DIR, "translation_history.json")
+OUTPUT_FOLDER = os.path.join(APP_BASE_DIR, "screenshots")
+
+APP_ICON_PATH = os.path.join(APP_BASE_DIR, "app_icon.ico")
 
 # --- 環境変数のロード ---
 load_dotenv()
@@ -34,10 +41,23 @@ load_dotenv()
 # --- ConfigManagerの初期化 ---
 config_manager = ConfigManager(SETTINGS_FILE)
 
-# ConfigManagerにOUTPUT_FOLDERをセット (設定ファイルにない場合に追加)
-if config_manager.get("OUTPUT_FOLDER") is None:
+# setting.yaml が存在しない場合、または OUTPUT_FOLDER が設定されていない場合に保存を強制
+if not os.path.exists(SETTINGS_FILE) or \
+   config_manager.get("OUTPUT_FOLDER") is None or not os.path.isabs(config_manager.get("OUTPUT_FOLDER")):
+    logger.info("setting.yaml が存在しないか、初期設定が不完全なため、デフォルト設定を保存します。")
     config_manager.set("OUTPUT_FOLDER", OUTPUT_FOLDER)
     config_manager.save_settings()
+    config_manager.reload()
+
+# translation_history.json が存在しない場合、空のファイルとして生成
+if not os.path.exists(HISTORY_FILE):
+    try:
+        with open(HISTORY_FILE, 'w', encoding='utf-8') as f:
+            json.dump([], f, ensure_ascii=False, indent=4)
+        logger.info(f"translation_history.json が存在しないため、空のファイルを生成しました: {HISTORY_FILE}")
+    except Exception as e:
+        logger.exception(f"translation_history.json の生成中にエラーが発生しました: {HISTORY_FILE}")
+
 
 # ホットキーの仮想キーコードをConfigManagerから取得
 HOTKEY_VK_CODE = config_manager.get("hotkey.key_code")
@@ -57,7 +77,7 @@ selection_window = None
 result_window = None
 history_window = None
 settings_window = None
-tray_icon = None # システムトレイアイコンのグローバル参照
+tray_icon = None
 
 def on_hotkey_pressed():
     """グローバルホットキーが押されたときに呼び出されるスロット。"""
@@ -105,28 +125,33 @@ def quit_application():
     """アプリケーションを完全に終了する。"""
     logger.info("アプリケーションを終了します。")
     if tray_icon:
-        tray_icon.hide() # トレイアイコンを非表示にする
-    QApplication.quit() # アプリケーションを終了
+        tray_icon.hide()
+    QApplication.quit()
 
 if __name__ == "__main__":
     logger.info("メインスクリプト開始。")
     
     app = QApplication(sys.argv)
-    # 最後のウィンドウが閉じられてもアプリが終了しないように設定
-    # システムトレイアイコンを使用する場合、これをFalseに設定することが重要
     app.setQuitOnLastWindowClosed(False)
     
-    # アプリケーションアイコンの設定
+    # --- アプリケーションアイコンとシステムトレイアイコンの堅牢な設定 ---
+    app_icon = None
     if os.path.exists(APP_ICON_PATH):
-        app.setWindowIcon(QIcon(APP_ICON_PATH))
+        app_icon = QIcon(APP_ICON_PATH)
+        app.setWindowIcon(app_icon)
         logger.info(f"アプリケーションアイコンを '{APP_ICON_PATH}' に設定しました。")
     else:
-        logger.warning(f"アプリケーションアイコンファイル '{APP_ICON_PATH}' が見つかりませんでした。デフォルトアイコンを使用します。")
+        logger.warning(f"アプリケーションアイコンファイル '{APP_ICON_PATH}' が見つかりませんでした。")
+        # フォールバックとしてQtの標準アイコンを使用
+        app_icon = QApplication.style().standardIcon(QStyle.SP_ComputerIcon) # または SP_DesktopIcon など
+        app.setWindowIcon(app_icon)
+        logger.info("デフォルトのQt標準アイコンをアプリケーションアイコンとして設定しました。")
+
 
     logger.info("QApplicationインスタンスを作成しました。")
     
     result_window = ResultWindow(config_manager=config_manager)
-    result_window.hide()
+    result_window.hide() # main_app_file_generation_fix の状態に戻すため、このまま
     logger.info("ResultWindowインスタンスを作成し、非表示にしました。")
 
     history_window = HistoryWindow(history_file_path=HISTORY_FILE)
@@ -145,12 +170,13 @@ if __name__ == "__main__":
     selection_window.hide()
     logger.info("SelectionWindowインスタンスを作成し、非表示にしました。")
 
-    # --- システムトレイアイコンの設定 ---
     if QSystemTrayIcon.isSystemTrayAvailable():
-        tray_icon = QSystemTrayIcon(app.windowIcon(), app) # アプリケーションアイコンを使用
+        # システムトレイアイコンには、app_iconが有効であればそれを使用、そうでなければデフォルトのQtアイコンを使用
+        tray_icon_to_use = app_icon if app_icon and not app_icon.isNull() else QApplication.style().standardIcon(QStyle.SP_MessageBoxInformation)
+        
+        tray_icon = QSystemTrayIcon(tray_icon_to_use, app)
         tray_icon.setToolTip("スクリーンショット翻訳ツール")
 
-        # コンテキストメニューの作成
         tray_menu = QMenu()
         show_action = QAction("表示", app)
         show_action.triggered.connect(show_result_window_from_tray)
@@ -160,22 +186,19 @@ if __name__ == "__main__":
         hide_action.triggered.connect(hide_result_window_to_tray)
         tray_menu.addAction(hide_action)
 
-        tray_menu.addSeparator() # 区切り線
+        tray_menu.addSeparator()
 
         quit_action = QAction("終了", app)
         quit_action.triggered.connect(quit_application)
         tray_menu.addAction(quit_action)
 
         tray_icon.setContextMenu(tray_menu)
-
-        # クリックイベントの接続 (左クリックで表示/非表示を切り替える)
         tray_icon.activated.connect(lambda reason: show_result_window_from_tray() if reason == QSystemTrayIcon.Trigger else None)
         
         tray_icon.show()
         logger.info("システムトレイアイコンが作成され、表示されました。")
     else:
         logger.warning("システムトレイが利用できません。システムトレイアイコンは表示されません。")
-    # --- システムトレイアイコンの設定ここまで ---
 
 
     result_window.show_history_signal.connect(history_window.show)
